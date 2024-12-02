@@ -7,11 +7,11 @@ const config = {
 };
 
 async function createAuth0Client() {
-  auth0Client = await auth0.createAuth0Client({
-    domain: config.domain,
-    client_id: config.clientId,
-    redirect_uri: config.redirectUri
-  });      
+    auth0Client = new Auth0Client({
+        domain: config.domain,
+        client_id: config.clientId,
+        redirect_uri: config.redirectUri
+      });      
 }
 
 async function getManagementApiAccessToken() {
