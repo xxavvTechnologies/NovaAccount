@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Accounts - Manage Your Novawerks ID</title>
+  <script src="https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@1.18.0/dist/umd/auth0-spa-js.production.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div id="content">
+    <h1>Nova Accounts</h1>
+    <p>Welcome to the Nova platform. Manage your Novawerks ID here!</p>
+
+    <div id="profile" style="display:none;">
+      <h2>Your Profile</h2>
+      <!-- Profile Picture -->
+      <div>
+        <img id="profile-picture" src="" alt="Profile Picture" width="150" />
+        <button id="edit-profile-picture">Change Profile Picture</button>
+      </div>
+
+      <!-- User Information -->
+      <p><strong>Name:</strong> <span id="user-name"></span> 
+        <button id="edit-name">Edit Name</button>
+      </p>
+      <p><strong>Email:</strong> <span id="user-email"></span></p>
+
+      <!-- Logout Button -->
+      <button id="logout">Logout</button>
+    </div>
+
+    <div id="login" style="display:none;">
+      <h2>Login to Your Account</h2>
+      <button id="login-btn">Login with Novawerks ID</button>
+    </div>
+
+    <div id="loading" style="display:none;">
+      <h2>Loading...</h2>
+    </div>
+  </div>
+</body>
+</html>
