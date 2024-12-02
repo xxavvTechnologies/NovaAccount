@@ -8,7 +8,7 @@ const config = {
 
 // Initialize the Auth0 client
 async function createAuth0Client() {
-  auth0Client = await createAuth0({
+  auth0Client = new Auth0Client({
     domain: config.domain,
     client_id: config.clientId,
     redirect_uri: config.redirectUri
@@ -19,7 +19,7 @@ async function createAuth0Client() {
 async function getManagementApiAccessToken() {
   const accessToken = await auth0Client.getTokenWithPopup({
     audience: `https://${config.domain}/api/v2/`,
-    scope: 'read:users update:users'  // Scopes for updating the user profile
+    scope: 'read:users update:users' // Scopes for updating the user profile
   });
 
   return accessToken;
@@ -28,12 +28,12 @@ async function getManagementApiAccessToken() {
 // Update User Profile
 async function updateUserProfile(userId, updatedProfileData) {
   const token = await getManagementApiAccessToken();
-  
+
   const response = await fetch(`https://${config.domain}/api/v2/users/${userId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`  // Use the token for Authorization
+      'Authorization': `Bearer ${token}` // Use the token for Authorization
     },
     body: JSON.stringify(updatedProfileData)
   });
@@ -60,7 +60,7 @@ function showProfile(user) {
 
   document.getElementById("user-name").textContent = user.name;
   document.getElementById("user-email").textContent = user.email;
-  document.getElementById("profile-picture").src = user.picture || "https://i.ibb.co/ckr2fSV/nova-5.png";  // Add default if no picture
+  document.getElementById("profile-picture").src = user.picture || "https://i.ibb.co/ckr2fSV/nova-5.png"; // Add default if no picture
 }
 
 // Handle logout
@@ -79,9 +79,10 @@ async function init() {
   document.getElementById("loading").style.display = "block";
 
   await createAuth0Client();
-  
-  const user = await auth0Client.getUser();
-  if (user) {
+
+  const isAuthenticated = await auth0Client.isAuthenticated();
+  if (isAuthenticated) {
+    const user = await auth0Client.getUser();
     showProfile(user);
   } else {
     document.getElementById("login").style.display = "block";
