@@ -1,5 +1,4 @@
 /* Import fonts */
-@import url('https://fonts.googleapis.com/css2?family=WixMadefor+Display:wght@400;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
 /* Modern CSS Reset and Base Styles */
@@ -12,20 +11,21 @@
 }
 
 :root {
-    /* Enhanced Gold Palette */
-    --gold-primary: #d4af37;      /* Richer, more metallic gold */
-    --gold-secondary: #c1a349;    /* Softer gold for hover states */
-    --gold-accent: #f0d878;       /* Light gold for highlights */
-    --text-dark: #1a1a1a;
-    --text-light: #333333;
-    --background-light: #f8f9fa;
-    --background-white: #ffffff;
+    /* Dark Mode Color Palette */
+    --background-dark: #121212;
+    --surface-dark: #1e1e1e;
+    --primary: #bb86fc;
+    --primary-variant: #3700b3;
+    --secondary: #03dac6;
+    --text-primary: #ffffff;
+    --text-secondary: #b3b3b3;
+    --error: #cf6679;
 }
 
 body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--background-light);
-    color: var(--text-light);
+    background-color: var(--background-dark);
+    color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
     display: flex;
@@ -33,32 +33,35 @@ body {
     align-items: center;
 }
 
+.container {
+    max-width: 800px;
+    width: 90%;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
 #content {
-    max-width: 500px;
-    width: 100%;
-    background-color: var(--background-white);
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    background-color: var(--surface-dark);
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
 /* Typography */
 h1 {
-    font-family: 'WixMadefor Display', sans-serif;
-    font-size: 2.25rem;
-    font-weight: 600;
-    color: var(--gold-primary);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
     text-align: center;
     margin-bottom: 1.5rem;
     letter-spacing: -0.5px;
 }
 
 h2 {
-    font-family: 'WixMadefor Display', sans-serif;
-    font-size: 1.75rem;
+    font-size: 2rem;
     font-weight: 600;
-    color: var(--text-dark);
+    color: var(--text-primary);
     margin-bottom: 1.25rem;
     letter-spacing: -0.3px;
 }
@@ -66,36 +69,34 @@ h2 {
 p {
     font-size: 1rem;
     margin-bottom: 1rem;
-    color: var(--text-light);
+    color: var(--text-secondary);
 }
 
-/* Button Styles - Modern, Subtle Elevation */
+/* Button Styles */
 button {
     width: 100%;
-    background-color: var(--gold-primary);
-    color: var(--background-white);
+    background-color: var(--primary);
+    color: var(--background-dark);
     font-family: 'Inter', sans-serif;
-    font-weight: 700;
+    font-weight: 600;
     padding: 12px 20px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 1rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 button:hover {
-    background-color: var(--gold-secondary);
+    background-color: var(--primary-variant);
     transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.12);
 }
 
 button:focus {
     outline: none;
-    box-shadow: 0 0 0 4px var(--gold-accent);
+    box-shadow: 0 0 0 4px var(--secondary);
 }
 
 /* Profile and Interactive Elements */
@@ -110,13 +111,13 @@ button:focus {
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 1.5rem;
-    border: 3px solid var(--gold-primary);
+    border: 3px solid var(--primary);
 }
 
 #edit-profile-picture, 
 #edit-name {
     background-color: transparent;
-    color: var(--gold-primary);
+    color: var(--secondary);
     border: none;
     font-weight: 600;
     cursor: pointer;
@@ -128,30 +129,32 @@ button:focus {
 
 #edit-profile-picture:hover, 
 #edit-name:hover {
-    color: var(--gold-secondary);
+    color: var(--primary);
 }
 
 #loading h2 {
     font-size: 1.5rem;
-    color: var(--gold-primary);
+    color: var(--primary);
     text-align: center;
 }
 
 #logout {
-    background-color: #e74c3c;
+    background-color: var(--error);
     margin-top: 1.5rem;
 }
 
 #logout:hover {
-    background-color: #c0392b;
+    background-color: #b3435e;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    #content {
-        padding: 25px;
+    .container {
         width: 95%;
-        max-width: 400px;
+    }
+
+    #content {
+        padding: 1.5rem;
     }
 
     h1 {
@@ -173,11 +176,7 @@ button:focus {
 
 /* Accessibility and Subtle Animations */
 @media (prefers-reduced-motion: no-preference) {
-    button:hover {
-        transition: all 0.3s ease;
-    }
-
-    #content {
+    button, #content {
         transition: all 0.3s ease;
     }
 }
