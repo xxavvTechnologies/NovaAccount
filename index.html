@@ -7,39 +7,97 @@
   <link rel="icon" type="image/x-icon" href="https://i.ibb.co/2qY7xrj/nova-4.png">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@1.18.0/dist/umd/auth0-spa-js.production.js"></script>
-  <script src="app.js" defer></script>
+  <script src="app.js" type="module"></script>
 </head>
 <body>
-  <div id="content">
-    <h1>Nova Accounts</h1>
-    <p>Welcome to the Nova platform. Manage your Novawerks ID here!</p>
+  <div id="app-container">
+    <header>
+      <h1>Nova Accounts</h1>
+      <p>Manage your Novawerks ID securely</p>
+    </header>
 
-    <div id="profile" style="display:none;">
-      <h2>Your Profile</h2>
-      <!-- Profile Picture -->
-      <div>
-        <img id="profile-picture" src="" alt="Profile Picture" width="150" />
-        <button id="edit-profile-picture">Change Profile Picture</button>
+    <main>
+      <!-- Loading State -->
+      <section id="loading-section" class="section" style="display:none;">
+        <div class="loader">
+          <div class="spinner"></div>
+          <p>Loading your account...</p>
+        </div>
+      </section>
+
+      <!-- Login Section -->
+      <section id="login-section" class="section" style="display:none;">
+        <div class="login-container">
+          <h2>Sign In to Nova</h2>
+          <button id="login-btn" class="primary-btn">
+            <span>Login with Novawerks ID</span>
+          </button>
+          <p class="signup-text">Don't have an account? <a href="#" id="signup-link">Sign Up</a></p>
+        </div>
+      </section>
+
+      <!-- Profile Section -->
+      <section id="profile-section" class="section" style="display:none;">
+        <div class="profile-container">
+          <h2>Your Account</h2>
+          
+          <!-- Profile Picture -->
+          <div class="profile-picture-container">
+            <img id="profile-picture" src="" alt="Profile Picture" />
+            <button id="edit-profile-picture" class="secondary-btn">
+              Change Picture
+            </button>
+          </div>
+
+          <!-- User Information -->
+          <div class="user-info">
+            <div class="info-row">
+              <label>Name</label>
+              <div class="editable-field">
+                <span id="user-name"></span>
+                <button id="edit-name" class="edit-btn">Edit</button>
+              </div>
+            </div>
+
+            <div class="info-row">
+              <label>Email</label>
+              <div class="editable-field">
+                <span id="user-email"></span>
+              </div>
+            </div>
+
+            <div class="info-row">
+              <label>Account Type</label>
+              <span id="user-account-type">Basic User</span>
+            </div>
+          </div>
+
+          <!-- Account Actions -->
+          <div class="account-actions">
+            <button id="change-password" class="secondary-btn">Change Password</button>
+            <button id="logout" class="danger-btn">Logout</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Error Modal -->
+      <div id="error-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+          <span class="close-modal">&times;</span>
+          <h3>Error</h3>
+          <p id="error-message"></p>
+        </div>
       </div>
+    </main>
 
-      <!-- User Information -->
-      <p><strong>Name:</strong> <span id="user-name"></span> 
-        <button id="edit-name">Edit Name</button>
-      </p>
-      <p><strong>Email:</strong> <span id="user-email"></span></p>
-
-      <!-- Logout Button -->
-      <button id="logout">Logout</button>
-    </div>
-
-    <div id="login" style="display:none;">
-      <h2>Login to Your Account</h2>
-      <button id="login-btn">Login with Novawerks ID</button>
-    </div>
-
-    <div id="loading" style="display:none;">
-      <h2>Loading...</h2>
-    </div>
+    <footer>
+      <p>&copy; 2024 Novawerks. All rights reserved.</p>
+      <nav>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Support</a>
+      </nav>
+    </footer>
   </div>
 </body>
 </html>
