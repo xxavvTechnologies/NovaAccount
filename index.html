@@ -7,7 +7,7 @@
   <link rel="icon" type="image/x-icon" href="https://i.ibb.co/2qY7xrj/nova-4.png">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@1.18.0/dist/umd/auth0-spa-js.production.js"></script>
-  <script src="app.js" type="module" defer></script>
+  <script src="app.js" defer></script>
 </head>
 <body>
   <div id="app-container">
@@ -17,60 +17,30 @@
     </header>
 
     <main>
-      <section id="loading-section" class="section">
+      <div id="loading" style="display: none;">
         <div class="loader">
           <div class="spinner"></div>
           <p>Loading your account...</p>
         </div>
-      </section>
+      </div>
 
-      <section id="login-section" class="section" hidden>
-        <div class="login-container">
-          <h2>Sign In to Nova</h2>
-          <button id="login-btn" class="primary-btn">Login with Novawerks ID</button>
-          <p class="signup-text">Don't have an account? <a href="#" id="signup-link">Sign Up</a></p>
-        </div>
-      </section>
+      <div id="login" style="display: none;">
+        <h2>Sign In to Nova</h2>
+        <button id="login-btn" class="primary-btn">Login with Novawerks ID</button>
+        <p class="signup-text">Don't have an account? <a href="#" id="signup-link">Sign Up</a></p>
+      </div>
 
-      <section id="profile-section" class="section" hidden>
-        <div class="profile-container">
-          <h2>Your Account</h2>
-          <div class="profile-picture-container">
-            <img id="profile-picture" src="" alt="Profile Picture" />
-            <button id="edit-profile-picture" class="secondary-btn">Change Picture</button>
-          </div>
-          <div class="user-info">
-            <div class="info-row">
-              <label>Name</label>
-              <div class="editable-field">
-                <span id="user-name"></span>
-                <button id="edit-name" class="edit-btn">Edit</button>
-              </div>
-            </div>
-            <div class="info-row">
-              <label>Email</label>
-              <span id="user-email"></span>
-            </div>
-            <div class="info-row">
-              <label>Account Type</label>
-              <span id="user-account-type">Basic User</span>
-            </div>
-          </div>
-          <div class="account-actions">
-            <button id="change-password" class="secondary-btn">Change Password</button>
-            <button id="logout" class="danger-btn">Logout</button>
-          </div>
-        </div>
-      </section>
+      <div id="profile" style="display: none;">
+        <h2>Your Account</h2>
+        <img id="profile-picture" src="" alt="Profile Picture" />
+        <p>Name: <span id="user-name"></span></p>
+        <p>Email: <span id="user-email"></span></p>
+        <button id="logout" class="danger-btn">Logout</button>
+      </div>
     </main>
 
     <footer>
       <p>&copy; 2024 Novawerks. All rights reserved.</p>
-      <nav>
-        <a href="/privacy-policy">Privacy Policy</a>
-        <a href="/tos">Terms of Service</a>
-        <a href="/helpcenter">Support</a>
-      </nav>
     </footer>
   </div>
 </body>

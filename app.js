@@ -1,75 +1,93 @@
 let auth0Client;
 
 const config = {
-  domain: "auth.novawerks.xxavvgroup.com",
-  clientId: "nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL",
-  redirectUri: window.location.href,
+  domain: "auth.novawerks.xxavvgroup.com", // Replace with your Auth0 domain
+  clientId: "nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL", // Replace with your Auth0 client ID
+  redirectUri: window.location.href
 };
 
-// Initialize Auth0
-async function createAuth0ClientInstance() {
-  try {
-    auth0Client = await createAuth0(config);
-  } catch (error) {
-    console.error("Error initializing Auth0:", error);
-  }
+// Initialize the Auth0 client
+async function createAuth0Client() {
+  auth0Client = await createAuth0({
+    domain: config.domain,
+    client_id: config.clientId,
+    redirect_uri: config.redirectUri
+  });
 }
 
-// Login handler
+// Get Management API Access Token
+async function getManagementApiAccessToken() {
+  const accessToken = await auth0Client.getTokenWithPopup({
+    audience: `https://${config.domain}/api/v2/`,
+    scope: 'read:users update:users'  // Scopes for updating the user profile
+  });
+
+  return accessToken;
+}
+
+// Update User Profile
+async function updateUserProfile(userId, updatedProfileData) {
+  const token = await getManagementApiAccessToken();
+  
+  const response = await fetch(`https://${config.domain}/api/v2/users/${userId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`  // Use the token for Authorization
+    },
+    body: JSON.stringify(updatedProfileData)
+  });
+
+  const data = await response.json();
+  return data;
+}
+
+// Handle login
 async function login() {
   try {
     await auth0Client.loginWithPopup();
     const user = await auth0Client.getUser();
-    if (user) showProfile(user);
+    showProfile(user);
   } catch (error) {
-    showError("Login failed. Please try again.");
-    console.error("Login error:", error);
+    console.error("Login error", error);
   }
 }
 
-// Show Profile
+// Show the profile page
 function showProfile(user) {
-  document.getElementById("login-section").hidden = true;
-  document.getElementById("profile-section").hidden = false;
-  document.getElementById("user-name").textContent = user.name || "User";
-  document.getElementById("user-email").textContent = user.email || "Email not available";
-  document.getElementById("profile-picture").src = user.picture || "https://i.ibb.co/ckr2fSV/nova-5.png";
+  document.getElementById("login").style.display = "none";
+  document.getElementById("profile").style.display = "block";
+
+  document.getElementById("user-name").textContent = user.name;
+  document.getElementById("user-email").textContent = user.email;
+  document.getElementById("profile-picture").src = user.picture || "https://i.ibb.co/ckr2fSV/nova-5.png";  // Add default if no picture
 }
 
-// Logout handler
+// Handle logout
 async function logout() {
-  try {
-    await auth0Client.logout({ returnTo: config.redirectUri });
-    document.getElementById("profile-section").hidden = true;
-    document.getElementById("login-section").hidden = false;
-  } catch (error) {
-    showError("Logout failed. Please try again.");
-    console.error("Logout error:", error);
-  }
+  await auth0Client.logout({ returnTo: window.location.href });
+  document.getElementById("profile").style.display = "none";
+  document.getElementById("login").style.display = "block";
 }
 
-// Error modal
-function showError(message) {
-  const modal = document.createElement("div");
-  modal.className = "modal";
-  modal.innerHTML = `<div class="modal-content"><h3>Error</h3><p>${message}</p><button onclick="this.parentElement.parentElement.remove()">Close</button></div>`;
-  document.body.appendChild(modal);
-}
+// Set up event listeners
+document.getElementById("login-btn").addEventListener("click", login);
+document.getElementById("logout").addEventListener("click", logout);
 
-// Initialize App
+// Initialize the app
 async function init() {
-  document.getElementById("loading-section").hidden = false;
-  await createAuth0ClientInstance();
+  document.getElementById("loading").style.display = "block";
+
+  await createAuth0Client();
+  
   const user = await auth0Client.getUser();
   if (user) {
     showProfile(user);
   } else {
-    document.getElementById("login-section").hidden = false;
+    document.getElementById("login").style.display = "block";
   }
-  document.getElementById("loading-section").hidden = true;
-}
 
-document.getElementById("login-btn").addEventListener("click", login);
-document.getElementById("logout").addEventListener("click", logout);
+  document.getElementById("loading").style.display = "none";
+}
 
 init();
