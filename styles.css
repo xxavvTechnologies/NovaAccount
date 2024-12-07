@@ -12,21 +12,21 @@
 
 /* Color Palette with Enhanced Dark Mode */
 :root {
-    /* Dark Mode Color Palette */
-    --background-dark: #0a0a0f;
-    --surface-dark: #121219;
-    --surface-light: #1c1c24;
-    
+    /* Glassmorphic Background Colors */
+    --glass-bg: rgba(255, 255, 255, 0.2);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-blur: 20px;
+
     /* Blue Highlight Color Palette */
-    --primary-blue: #3498db;
+    --primary-blue: #002eff;
     --primary-blue-variant: #2980b9;
-    --secondary-blue: #5dade2;
-    
+    --secondary-blue: #5f7cff;
+
     /* Text and Accent Colors */
     --text-primary: #e6e6e6;
     --text-secondary: #a0a0a0;
     --text-accent: #ffffff;
-    
+
     /* Utility Colors */
     --success: #2ecc71;
     --warning: #f39c12;
@@ -52,7 +52,7 @@
 /* Global Styles */
 body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--background-dark);
+    background: url('assets/images/novadark.png') center / cover no-repeat, var(--glass-bg);
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
@@ -62,6 +62,7 @@ body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    backdrop-filter: blur(var(--glass-blur));
 }
 
 /* Container Styles */
@@ -74,11 +75,12 @@ body {
 
 /* Content Section */
 #content {
-    background-color: var(--surface-dark);
-    border: 1px solid var(--surface-light);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     padding: var(--space-lg);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-medium);
+    backdrop-filter: blur(var(--glass-blur));
     transition: all 0.3s ease;
 }
 
@@ -139,14 +141,14 @@ p {
 }
 
 .btn-secondary {
-    background-color: var(--surface-light);
+    background-color: var(--glass-bg);
     color: var(--primary-blue);
 }
 
 .btn-secondary:hover {
-    background-color: var(--surface-light);
     opacity: 0.9;
 }
+
 
 /* Profile Styles */
 .profile {
@@ -240,16 +242,10 @@ p {
     }
 }
 
-/* Print Styles */
+/* Disable Printing */
 @media print {
-    body {
-        background-color: white;
-        color: black;
-    }
-
-    #content {
-        box-shadow: none;
-        border: 1px solid #ccc;
+    * {
+        display: none !important;
     }
 }
 
