@@ -17,8 +17,10 @@
     <script>
         // Initialize Auth0
         let auth0Client;
+        
+        // Initialize Auth0 Client
         async function initAuth0() {
-            auth0Client = await createAuth0Client({
+            auth0Client = await Auth0Client.create({
                 domain: 'auth.novawerks.xxavvgroup.com', 
                 client_id: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
                 authorizationParams: {
@@ -27,7 +29,7 @@
             });
         }
 
-        // Initialize Auth0 and check authentication status
+        // Call initAuth0 to set up the Auth0 client
         initAuth0();
 
         // Handle the sign-up link
