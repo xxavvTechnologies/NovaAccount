@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Our Website</title>
+    <link rel="icon" type="image/x-icon" href="https://i.ibb.co/2qY7xrj/nova-4.png">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Include Auth0 SDK -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0.0/auth0-spa-js.production.js"></script>
+</head>
+<body>
+    <div class="container">
+        <p>Don't have an account? <a href="#" id="signupLink">Sign Up</a></p>
+    </div>
+
+    <script>
+        // Initialize Auth0
+        let auth0Client;
+        async function initAuth0() {
+            auth0Client = await createAuth0Client({
+                domain: 'auth.novawerks.xxavvgroup.com', 
+                client_id: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
+                authorizationParams: {
+                    redirect_uri: window.location.origin
+                }
+            });
+        }
+
+        // Initialize Auth0 and check authentication status
+        initAuth0();
+
+        // Handle the sign-up link
+        document.getElementById('signupLink').addEventListener('click', () => {
+            auth0Client.loginWithRedirect({
+                screen_hint: 'signup'
+            });
+        });
+    </script>
+</body>
+</html>
