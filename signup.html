@@ -3,22 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NovaAccounts</title>
-    <link rel="icon" type="image/x-icon" href="https://i.ibb.co/2qY7xrj/nova-4.png">
+    <title>Nova Account - Sign Up</title>
+    <link rel="icon" type="image/x-icon" href="assets/nova-logo.png">
     <link rel="stylesheet" href="styles.css">
-    <!-- Include Auth0 SDK -->
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0.0/auth0-spa-js.production.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fluentui/icons@1.1.0/fonts/FluentSystemIcons.css">
 </head>
 <body>
-    <div class="container">
-        <p>Don't have an account? <a href="#" id="signupLink">Sign Up</a></p>
+    <header class="header">
+        <div class="container header-content">
+            <nav class="primary-nav">
+                <img src="assets/nova-logo.png" alt="Nova" class="logo">
+                <div class="nav-links">
+                    <a href="index.html">Account</a>
+                    <a href="#">Privacy</a>
+                    <a href="#">Security</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container main-content">
+        <div id="content" class="animate-in">
+            <div class="profile">
+                <h1>Create Your Nova Account</h1>
+                <p>Join Nova to access all our services and features</p>
+                
+                <div class="card">
+                    <button class="btn" id="signupLink">Sign Up with Nova</button>
+                    <p class="text-secondary" style="margin-top: var(--space-md);">
+                        Already have an account? 
+                        <a href="#" id="loginLink" style="color: var(--primary-blue);">Sign In</a>
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0.0/auth0-spa-js.production.js"></script>
     <script>
-        // Initialize Auth0
         let auth0Client;
         
-        // Initialize Auth0 Client
         async function initAuth0() {
             auth0Client = await Auth0Client.create({
                 domain: 'auth.novawerks.xxavvgroup.com', 
@@ -29,14 +53,16 @@
             });
         }
 
-        // Call initAuth0 to set up the Auth0 client
         initAuth0();
 
-        // Handle the sign-up link
         document.getElementById('signupLink').addEventListener('click', () => {
             auth0Client.loginWithRedirect({
                 screen_hint: 'signup'
             });
+        });
+
+        document.getElementById('loginLink').addEventListener('click', () => {
+            auth0Client.loginWithRedirect();
         });
     </script>
 </body>

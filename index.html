@@ -1,48 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nova Accounts - Manage Your Novawerks ID</title>
-  <link rel="icon" type="image/x-icon" href="https://i.ibb.co/2qY7xrj/nova-4.png">
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@1.18.0/dist/auth0-spa-js.production.js"></script>
-  <script src="app.js" type="module" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Account - Overview</title>
+    <link rel="icon" type="image/x-icon" href="assets/nova-logo.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fluentui/icons@1.1.0/fonts/FluentSystemIcons.css">
+    <base href="/">
 </head>
 <body>
-  <div class="container">
-    <div id="content">
-      <header>
-        <h1>Nova Accounts</h1>
-        <p>Manage your Novawerks ID securely</p>
-      </header>
-
-      <main>
-        <div id="loading" style="display: none;">
-          <h2>Loading your account...</h2>
-        </div>
-
-        <div id="login" style="display: none;">
-          <h2>Sign In to Nova</h2>
-          <button id="login-btn">Login with Novawerks ID</button>
-          <p class="signup-text">Don't have an account? <a href="#" id="signup-link">Sign Up</a></p>
-        </div>
-
-        <div id="profile" style="display: none;">
-          <h2>Your Account</h2>
-          <img id="profile-picture" src="" alt="Profile Picture" />
-          <p>Name: <span id="user-name"></span></p>
-          <p>Email: <span id="user-email"></span></p>
-          <button id="edit-profile-picture">Edit Profile Picture</button>
-          <button id="edit-name">Edit Name</button>
-          <button id="logout">Logout</button>
-        </div>
-      </main>
-
-      <footer>
-        <p>&copy; 2024 Novawerks. All rights reserved.</p>
-      </footer>
+    <div class="announcement-banner">
+        <span>🎉 We've completely revamped Nova Accounts! <a href="changelog.html">See what's new</a></span>
+        <button class="close-button" aria-label="Close banner">✕</button>
     </div>
-  </div>
+    <header class="header">
+        <div class="container header-content">
+            <nav class="primary-nav">
+                <div class="logo-container">
+                    <img src="assets/nova-logo.png" alt="Nova" class="logo">
+                    <div class="logo-popup">
+                        <h3>Nova Accounts</h3>
+                        <div class="logo-popup-info">
+                            <p>Version: 2.0</p>
+                            <p>Last Updated: Jan 20, 2025</p>
+                            <p>Developed by: xxavvTechnologies</p>
+                            <p>Support: <a href="mailto:support.nova@xxavvgroup.com">support.nova@xxavvgroup.com</a></p>
+                        </div>
+                        <div class="logo-popup-links">
+                            <a href="changelog.html">View Latest Updates</a>
+                            <a href="https://tech.xxavvgroup.com/nova/account">Technical & Legal Info</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-links">
+                    <a href="/" class="active">Account</a>
+                    <a href="/privacy">Privacy</a>
+                    <a href="/security">Security</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container main-content">
+        <aside class="sidebar">
+            <nav class="account-nav">
+                <a href="/" class="nav-item" data-nav="/">
+                    <i class="ms-Icon ms-Icon--Home"></i>
+                    Overview
+                </a>
+                <a href="/personal-info" class="nav-item" data-nav="/personal-info">
+                    <i class="ms-Icon ms-Icon--Contact"></i>
+                    Personal info
+                </a>
+                <a href="/security" class="nav-item" data-nav="/security">
+                    <i class="ms-Icon ms-Icon--Shield"></i>
+                    Security
+                </a>
+                <a href="/privacy" class="nav-item" data-nav="/privacy">
+                    <i class="ms-Icon ms-Icon--Lock"></i>
+                    Privacy
+                </a>
+            </nav>
+        </aside>
+
+        <main class="content"></main>
+            <!-- Content will be dynamically injected here -->
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.0.0/dist/auth0-spa-js.production.js"></script>
+    <script src="app.js" type="module"></script>
 </body>
 </html>
