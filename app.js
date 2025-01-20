@@ -1,3 +1,5 @@
+import { createAuth0Client } from '@auth0/auth0-spa-js';
+
 const NovaAccount = {
     config: {
         domain: 'auth.novawerks.xxavvgroup.com',

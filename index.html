@@ -8,6 +8,41 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fluentui/icons@1.1.0/fonts/FluentSystemIcons.css">
     <base href="/">
+    <style>
+        .container {
+            display: flex;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+        }
+        
+        .main-content {
+            flex-grow: 1;
+        }
+        
+        .account-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .nav-item {
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: var(--text);
+            border-radius: var(--radius-sm);
+        }
+        
+        .nav-item:hover {
+            background: var(--surface);
+        }
+    </style>
 </head>
 <body>
     <div class="announcement-banner">
@@ -69,7 +104,7 @@
         </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@auth0/auth0-spa-js@2.0.0/dist/auth0-spa-js.production.js"></script>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="app.js" type="module"></script>
 </body>
 </html>

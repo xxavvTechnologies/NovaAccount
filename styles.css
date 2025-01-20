@@ -530,7 +530,7 @@ p {
 }
 
 .announcement-banner a {
-    color: var(--text-accent);
+    color: var (--text-accent);
     text-decoration: underline;
     font-weight: 600;
 }
@@ -552,4 +552,56 @@ p {
 
 .announcement-banner .close-button:hover {
     opacity: 0.8;
+}
+
+/* Layout Fixes */
+.main-content {
+    padding: var(--space-lg);
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-medium);
+}
+
+.content {
+    min-height: 500px;
+    padding: var(--space-md);
+}
+
+/* Navigation Fixes */
+.primary-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) 0;
+}
+
+.nav-links {
+    display: flex;
+    gap: var(--space-md);
+}
+
+.nav-links a {
+    color: var(--text);
+    text-decoration: none;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    background: var(--surface);
+}
+
+/* Logo Fixes */
+.logo {
+    height: 40px;
+    width: auto;
+}
+
+/* Card Grid Fixes */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
 }
