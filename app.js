@@ -1,4 +1,4 @@
-import { createAuth0Client } from '@auth0/auth0-spa-js';
+import { Auth0Client } from '@auth0/auth0-spa-js';
 
 const NovaAccount = {
     config: {
@@ -75,7 +75,7 @@ const NovaAccount = {
 
     async init() {
         try {
-            this.auth0Client = await createAuth0Client({
+            this.auth0Client = new Auth0Client({
                 domain: this.config.domain,
                 clientId: this.config.client_id,
                 authorizationParams: this.config.authorizationParams,
