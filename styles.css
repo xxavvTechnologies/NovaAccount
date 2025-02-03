@@ -84,6 +84,25 @@ body {
   font-size: 14px;
 }
 
+.nav-link {
+  position: relative;
+  transition: color 0.2s;
+}
+
+.nav-link.active {
+  color: var(--primary-blue);
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -22px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--primary-blue);
+}
+
 .main-content {
   padding: var(--space-xl) 0;
 }
@@ -129,6 +148,10 @@ h1, h2, h3, h4, h5, h6,
 
 .animate-in {
   animation: fadeIn 0.5s ease-out;
+}
+
+.section-content {
+  animation: fadeIn 0.3s ease-out;
 }
 
 @keyframes fadeIn {

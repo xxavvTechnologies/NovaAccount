@@ -10,11 +10,26 @@
     <link rel="icon" type="image/x-icon" href="https://d2zcpib8duehag.cloudfront.net/novaccounts-wot.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fluentui/icons@1.1.0/fonts/FluentSystemIcons.css">
+    <style>
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--primary-blue);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-    <!-- Add loading state -->
-    <div id="loading" style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;">
-        <p class="text-secondary">Loading...</p>
+    <!-- Update loading state -->
+    <div id="loading" style="position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-md);">
+        <div class="loading-spinner"></div>
+        <p class="text-secondary">Loading your account...</p>
     </div>
 
     <!-- Hide main content initially -->
@@ -24,9 +39,9 @@
                 <nav class="primary-nav">
                     <img src="https://d2zcpib8duehag.cloudfront.net/novaccounts-wot.png" alt="Nova" class="logo">
                     <div class="nav-links">
-                        <a href="#profile">Profile</a>
-                        <a href="#security">Security</a>
-                        <a href="#privacy">Privacy</a>
+                        <a href="#profile" class="nav-link active" data-section="profileSection">Profile</a>
+                        <a href="#security" class="nav-link" data-section="securitySection">Security</a>
+                        <a href="#privacy" class="nav-link" data-section="privacySection">Privacy</a>
                     </div>
                 </nav>
                 <button class="btn" id="logoutBtn" style="display: none;">Sign Out</button>
@@ -34,15 +49,75 @@
         </header>
 
         <div class="container main-content">
-            <div id="content" class="animate-in">
-                <!-- Content will be dynamically loaded -->
-            </div>
+            <!-- Profile Section -->
+            <section id="profileSection" class="section-content animate-in">
+                <div class="profile-section">
+                    <h1>Welcome, <span id="userName">User</span></h1>
+                    
+                    <div class="card">
+                        <h2>Profile</h2>
+                        <p>Email: <span id="userEmail"></span></p>
+                        <p>Last login: <span id="lastLogin"></span></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Security Section -->
+            <section id="securitySection" class="section-content animate-in" style="display: none;">
+                <div class="profile-section">
+                    <h1>Security Settings</h1>
+                    
+                    <div class="card">
+                        <h2>Account Security</h2>
+                        <p>Email verification: <span id="emailVerified"></span></p>
+                        <button class="btn" onclick="updatePassword()">Change Password</button>
+                    </div>
+
+                    <div class="card">
+                        <h2>Two-Factor Authentication</h2>
+                        <p>Enhance your account security by enabling 2FA</p>
+                        <button class="btn-secondary" onclick="setup2FA()">Set Up 2FA</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Privacy Section -->
+            <section id="privacySection" class="section-content animate-in" style="display: none;">
+                <div class="profile-section">
+                    <h1>Privacy Settings</h1>
+                    
+                    <div class="card">
+                        <h2>Connected Apps</h2>
+                        <p>Manage applications connected to your Nova ID</p>
+                        <div id="connectedApps">
+                            <p class="text-secondary">No connected applications</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Data & Privacy</h2>
+                        <p>Control how your data is used across Nova services</p>
+                        <a href="privacy.html" class="btn-secondary" style="display: inline-block; text-decoration: none; margin-top: var(--space-md);">
+                            Privacy Policy
+                        </a>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0.0/auth0-spa-js.production.js"></script>
     <script>
-        // Add immediate authentication check
+        // Add timeout to hide loading
+        const hideLoading = () => {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+        };
+
+        // Force hide loading after 3 seconds
+        setTimeout(hideLoading, 3000);
+
+        // Auth0 initialization
         (async () => {
             try {
                 const client = await auth0.createAuth0Client({
@@ -53,7 +128,7 @@
                     }
                 });
 
-                // Handle redirect callback
+                // Handle callback and authentication
                 if (window.location.search.includes("code=")) {
                     await client.handleRedirectCallback();
                     window.history.replaceState({}, document.title, window.location.pathname);
@@ -68,20 +143,79 @@
                 // Store client instance globally
                 window.auth0Client = client;
 
-                // Show main content if authenticated
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-                
-                // Initialize app
-                const script = document.createElement('script');
-                script.src = 'app.js';
-                document.body.appendChild(script);
+                // Update UI with user info
+                const user = await client.getUser();
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('lastLogin').textContent = new Date(user.updated_at).toLocaleDateString();
+                document.getElementById('emailVerified').textContent = user.email_verified ? 'Verified' : 'Not verified';
+
+                // Hide loading and show content
+                hideLoading();
+                document.getElementById('logoutBtn').style.display = 'block';
+
+                // Setup navigation
+                setupNavigation();
+                showSection(window.location.hash.slice(1) || 'profile');
 
             } catch (error) {
                 console.error('Auth error:', error);
                 window.location.href = 'signup.html';
             }
         })();
+
+        // Navigation handling
+        function setupNavigation() {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const section = link.getAttribute('data-section');
+                    showSection(section);
+                });
+            });
+
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                auth0Client.logout({
+                    returnTo: window.location.origin + '/signup.html'
+                });
+            });
+        }
+
+        function showSection(sectionId) {
+            // Default to profile if no section specified
+            const section = sectionId.replace('Section', '') || 'profile';
+            const targetId = section + 'Section';
+
+            // Hide all sections
+            document.querySelectorAll('.section-content').forEach(s => {
+                s.style.display = 'none';
+            });
+
+            // Remove active class from all links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Show target section and activate its link
+            document.getElementById(targetId).style.display = 'block';
+            document.querySelector(`[data-section="${targetId}"]`).classList.add('active');
+        }
+
+        async function updatePassword() {
+            try {
+                await auth0Client.changePassword({
+                    connection: 'Username-Password-Authentication'
+                });
+                alert('Password reset email sent!');
+            } catch (err) {
+                console.error('Error:', err);
+            }
+        }
+
+        function setup2FA() {
+            alert('2FA setup will be available soon');
+        }
     </script>
 </body>
 </html>
