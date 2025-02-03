@@ -3,108 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova Account - Overview</title>
+    <title>Nova Account</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="assets/nova-logo.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fluentui/icons@1.1.0/fonts/FluentSystemIcons.css">
-    <base href="/">
-    <style>
-        .container {
-            display: flex;
-            gap: 2rem;
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .sidebar {
-            width: 250px;
-            flex-shrink: 0;
-        }
-        
-        .main-content {
-            flex-grow: 1;
-        }
-        
-        .account-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .nav-item {
-            padding: 0.75rem 1rem;
-            text-decoration: none;
-            color: var(--text);
-            border-radius: var(--radius-sm);
-        }
-        
-        .nav-item:hover {
-            background: var(--surface);
-        }
-    </style>
 </head>
 <body>
-    <div class="announcement-banner">
-        <span>🎉 We've completely revamped Nova Accounts! <a href="changelog.html">See what's new</a></span>
-        <button class="close-button" aria-label="Close banner">✕</button>
+    <!-- Add loading state -->
+    <div id="loading" style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;">
+        <p class="text-secondary">Loading...</p>
     </div>
-    <header class="header">
-        <div class="container header-content">
-            <nav class="primary-nav">
-                <div class="logo-container">
+
+    <!-- Hide main content initially -->
+    <div id="mainContent" style="display: none;">
+        <header class="header">
+            <div class="container header-content">
+                <nav class="primary-nav">
                     <img src="assets/nova-logo.png" alt="Nova" class="logo">
-                    <div class="logo-popup">
-                        <h3>Nova Accounts</h3>
-                        <div class="logo-popup-info">
-                            <p>Version: 2.0</p>
-                            <p>Last Updated: Jan 20, 2025</p>
-                            <p>Developed by: xxavvTechnologies</p>
-                            <p>Support: <a href="mailto:support.nova@xxavvgroup.com">support.nova@xxavvgroup.com</a></p>
-                        </div>
-                        <div class="logo-popup-links">
-                            <a href="changelog.html">View Latest Updates</a>
-                            <a href="https://tech.xxavvgroup.com/nova/account">Technical & Legal Info</a>
-                        </div>
+                    <div class="nav-links">
+                        <a href="#profile">Profile</a>
+                        <a href="#security">Security</a>
+                        <a href="#privacy">Privacy</a>
                     </div>
-                </div>
-                <div class="nav-links">
-                    <a href="/" class="active">Account</a>
-                    <a href="/privacy">Privacy</a>
-                    <a href="/security">Security</a>
-                </div>
-            </nav>
+                </nav>
+                <button class="btn" id="logoutBtn" style="display: none;">Sign Out</button>
+            </div>
+        </header>
+
+        <div class="container main-content">
+            <div id="content" class="animate-in">
+                <!-- Content will be dynamically loaded -->
+            </div>
         </div>
-    </header>
-
-    <div class="container main-content">
-        <aside class="sidebar">
-            <nav class="account-nav">
-                <a href="/" class="nav-item" data-nav="/">
-                    <i class="ms-Icon ms-Icon--Home"></i>
-                    Overview
-                </a>
-                <a href="/personal-info" class="nav-item" data-nav="/personal-info">
-                    <i class="ms-Icon ms-Icon--Contact"></i>
-                    Personal info
-                </a>
-                <a href="/security" class="nav-item" data-nav="/security">
-                    <i class="ms-Icon ms-Icon--Shield"></i>
-                    Security
-                </a>
-                <a href="/privacy" class="nav-item" data-nav="/privacy">
-                    <i class="ms-Icon ms-Icon--Lock"></i>
-                    Privacy
-                </a>
-            </nav>
-        </aside>
-
-        <main class="content"></main>
-            <!-- Content will be dynamically injected here -->
-        </main>
     </div>
 
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js" type="module"></script>
-    <script src="app.js" type="module"></script>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0.0/auth0-spa-js.production.js"></script>
+    <script>
+        // Add immediate authentication check
+        (async () => {
+            try {
+                const client = await auth0.createAuth0Client({
+                    domain: 'auth.novawerks.xxavvgroup.com',
+                    clientId: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
+                    authorizationParams: {
+                        redirect_uri: window.location.origin + '/index.html'
+                    }
+                });
+
+                // Handle redirect callback
+                if (window.location.search.includes("code=")) {
+                    await client.handleRedirectCallback();
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+
+                const isAuthenticated = await client.isAuthenticated();
+                if (!isAuthenticated) {
+                    window.location.href = 'signup.html';
+                    return;
+                }
+
+                // Store client instance globally
+                window.auth0Client = client;
+
+                // Show main content if authenticated
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                
+                // Initialize app
+                const script = document.createElement('script');
+                script.src = 'app.js';
+                document.body.appendChild(script);
+
+            } catch (error) {
+                console.error('Auth error:', error);
+                window.location.href = 'signup.html';
+            }
+        })();
+    </script>
 </body>
 </html>

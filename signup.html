@@ -4,37 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nova Account - Sign Up</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="assets/nova-logo.png">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fluentui/icons@1.1.0/fonts/FluentSystemIcons.css">
 </head>
 <body>
     <header class="header">
         <div class="container header-content">
             <nav class="primary-nav">
                 <img src="assets/nova-logo.png" alt="Nova" class="logo">
-                <div class="nav-links">
-                    <a href="index.html">Account</a>
-                    <a href="#">Privacy</a>
-                    <a href="#">Security</a>
-                </div>
             </nav>
         </div>
     </header>
 
     <div class="container main-content">
-        <div id="content" class="animate-in">
-            <div class="profile">
-                <h1>Create Your Nova Account</h1>
-                <p>Join Nova to access all our services and features</p>
+        <div class="signup-container animate-in">
+            <div class="card" style="max-width: 400px; margin: 48px auto;">
+                <h1 style="font-size: 24px; margin-bottom: var(--space-md);">Welcome to Nova</h1>
+                <p class="text-secondary" style="margin-bottom: var(--space-xl);">Create an account or sign in to continue</p>
                 
-                <div class="card">
-                    <button class="btn" id="signupLink">Sign Up with Nova</button>
-                    <p class="text-secondary" style="margin-top: var(--space-md);">
-                        Already have an account? 
-                        <a href="#" id="loginLink" style="color: var(--primary-blue);">Sign In</a>
-                    </p>
-                </div>
+                <button class="btn" id="signupBtn" style="width: 100%; margin-bottom: var(--space-md);">
+                    Create Account
+                </button>
+                
+                <button class="btn-secondary" id="loginBtn" style="width: 100%;">
+                    Sign In
+                </button>
+
+                <p class="text-secondary" style="font-size: 13px; margin-top: var(--space-xl);">
+                    By continuing, you agree to Nova's <a href="terms.html" style="color: var(--primary-blue);">Terms of Service</a> 
+                    and <a href="privacy.html" style="color: var(--primary-blue);">Privacy Policy</a>.
+                </p>
             </div>
         </div>
     </div>
@@ -44,26 +46,67 @@
         let auth0Client;
         
         async function initAuth0() {
-            auth0Client = await Auth0Client.create({
-                domain: 'auth.novawerks.xxavvgroup.com', 
-                client_id: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
+            auth0Client = await auth0.createAuth0Client({
+                domain: 'auth.novawerks.xxavvgroup.com',
+                clientId: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
                 authorizationParams: {
-                    redirect_uri: window.location.origin
+                    redirect_uri: window.location.origin + '/index.html'
                 }
             });
+
+            // Handle redirect callback
+            if (window.location.search.includes("code=")) {
+                await auth0Client.handleRedirectCallback();
+                window.history.replaceState({}, document.title, window.location.pathname);
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Check if already authenticated
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            if (isAuthenticated) {
+                window.location.href = 'index.html';
+            }
         }
 
-        initAuth0();
-
-        document.getElementById('signupLink').addEventListener('click', () => {
-            auth0Client.loginWithRedirect({
-                screen_hint: 'signup'
+        document.getElementById('signupBtn').addEventListener('click', async () => {
+            await auth0Client.loginWithRedirect({
+                authorizationParams: {
+                    screen_hint: 'signup'
+                }
             });
         });
 
-        document.getElementById('loginLink').addEventListener('click', () => {
-            auth0Client.loginWithRedirect();
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            await auth0Client.loginWithRedirect();
         });
+
+        initAuth0();
     </script>
+
+    <style>
+        .signup-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: calc(100vh - 64px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-bg);
+        }
+    </style>
 </body>
 </html>
