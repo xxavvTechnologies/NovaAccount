@@ -77,6 +77,22 @@
             gap: var(--space-sm);
         }
     </style>
+    <script>
+        // Add session recovery helper
+        const SESSION_KEY = 'nova_session';
+        
+        function saveSession(token) {
+            localStorage.setItem(SESSION_KEY, token);
+        }
+
+        function getSession() {
+            return localStorage.getItem(SESSION_KEY);
+        }
+
+        function clearSession() {
+            localStorage.removeItem(SESSION_KEY);
+        }
+    </script>
 </head>
 <body>
     <!-- Update loading state -->
@@ -197,44 +213,92 @@
                     clientId: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
                     authorizationParams: {
                         redirect_uri: window.location.origin + '/index.html'
-                    }
+                    },
+                    cacheLocation: 'localstorage', // Enable token caching
+                    useRefreshTokens: true // Enable refresh tokens
                 });
 
-                // Handle callback and authentication
+                window.auth0Client = client;
+
+                // Handle the callback
                 if (window.location.search.includes("code=")) {
-                    await client.handleRedirectCallback();
-                    window.history.replaceState({}, document.title, window.location.pathname);
+                    try {
+                        const result = await client.handleRedirectCallback();
+                        // Save target URL if it was part of the original request
+                        const targetUrl = result.appState && result.appState.targetUrl 
+                            ? result.appState.targetUrl 
+                            : window.location.pathname;
+                        
+                        // Save session
+                        const token = await client.getTokenSilently();
+                        saveSession(token);
+
+                        // Clean URL
+                        window.history.replaceState({}, document.title, targetUrl);
+                    } catch (err) {
+                        console.error('Callback handling failed:', err);
+                        clearSession();
+                        window.location.href = 'signup.html';
+                        return;
+                    }
                 }
 
-                const isAuthenticated = await client.isAuthenticated();
+                // Try to recover session
+                let isAuthenticated = false;
+                try {
+                    isAuthenticated = await client.isAuthenticated();
+                    
+                    // If not authenticated but we have a session, try to recover
+                    if (!isAuthenticated && getSession()) {
+                        await client.getTokenSilently({
+                            timeoutInSeconds: 10
+                        });
+                        isAuthenticated = true;
+                    }
+                } catch (err) {
+                    console.error('Session recovery failed:', err);
+                    clearSession();
+                }
+
                 if (!isAuthenticated) {
+                    clearSession();
                     window.location.href = 'signup.html';
                     return;
                 }
 
-                // Store client instance globally
-                window.auth0Client = client;
-
                 // Update UI with user info
-                const user = await client.getUser();
-                document.getElementById('userName').textContent = user.name;
-                document.getElementById('userEmail').textContent = user.email;
-                document.getElementById('lastLogin').textContent = new Date(user.updated_at).toLocaleDateString();
-                document.getElementById('emailVerified').textContent = user.email_verified ? 'Verified' : 'Not verified';
+                try {
+                    const user = await client.getUser();
+                    if (!user) throw new Error('No user data');
 
-                // Hide loading and show content
-                hideLoading();
-                document.getElementById('logoutBtn').style.display = 'block';
+                    document.getElementById('userName').textContent = user.name;
+                    document.getElementById('userEmail').textContent = user.email;
+                    document.getElementById('lastLogin').textContent = new Date(user.updated_at).toLocaleDateString();
+                    document.getElementById('emailVerified').textContent = user.email_verified ? 'Verified' : 'Not verified';
 
-                // Setup navigation
-                setupNavigation();
-                showSection(window.location.hash.slice(1) || 'profile');
+                    // Hide loading and show content
+                    hideLoading();
+                    document.getElementById('logoutBtn').style.display = 'block';
 
-                // Update security info
-                updateSecurityInfo(user);
+                    // Setup navigation and security info
+                    setupNavigation();
+                    showSection(window.location.hash.slice(1) || 'profile');
+                    updateSecurityInfo(user);
+
+                } catch (error) {
+                    console.error('Profile loading failed:', error);
+                    // Don't redirect immediately, show an error message
+                    document.getElementById('loading').innerHTML = `
+                        <p class="text-secondary">Unable to load profile. 
+                            <a href="#" onclick="window.location.reload()">Try again</a> or 
+                            <a href="signup.html">sign in again</a>.
+                        </p>
+                    `;
+                }
 
             } catch (error) {
-                console.error('Auth error:', error);
+                console.error('Initialization failed:', error);
+                clearSession();
                 window.location.href = 'signup.html';
             }
         })();
@@ -250,11 +314,7 @@
             });
 
             // Logout button
-            document.getElementById('logoutBtn').addEventListener('click', () => {
-                auth0Client.logout({
-                    returnTo: window.location.origin + '/signup.html'
-                });
-            });
+            document.getElementById('logoutBtn').addEventListener('click', logout);
         }
 
         function showSection(sectionId) {
@@ -419,6 +479,41 @@
         
         // Update security info when user data is loaded
         auth0Client.getUser().then(updateSecurityInfo);
+
+        // Update logout handling
+        function logout() {
+            clearSession();
+            auth0Client.logout({
+                returnTo: window.location.origin + '/signup.html'
+            });
+        }
+
+        // Add error recovery for token refresh
+        setInterval(async () => {
+            try {
+                if (auth0Client) {
+                    await auth0Client.getTokenSilently({
+                        timeoutInSeconds: 10
+                    });
+                }
+            } catch (err) {
+                console.error('Token refresh failed:', err);
+                // Only redirect if it's a fatal error
+                if (err.error === 'login_required') {
+                    clearSession();
+                    window.location.href = 'signup.html';
+                }
+            }
+        }, 5 * 60 * 1000); // Check every 5 minutes
+
+        // Update event listeners
+        window.addEventListener('offline', () => {
+            document.body.classList.add('offline');
+        });
+
+        window.addEventListener('online', () => {
+            document.body.classList.remove('offline');
+        });
     </script>
 </body>
 </html>

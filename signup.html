@@ -50,9 +50,28 @@
                 domain: 'auth.novawerks.xxavvgroup.com',
                 clientId: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
                 authorizationParams: {
-                    redirect_uri: window.location.origin
-                }
+                    redirect_uri: window.location.origin + '/index.html'
+                },
+                cacheLocation: 'localstorage',
+                useRefreshTokens: true
             });
+
+            try {
+                // Check for existing session
+                const isAuthenticated = await auth0Client.isAuthenticated();
+                if (isAuthenticated) {
+                    // Verify the token is still valid
+                    await auth0Client.getTokenSilently({
+                        timeoutInSeconds: 10
+                    });
+                    window.location.href = 'index.html';
+                    return;
+                }
+            } catch (err) {
+                console.error('Session verification failed:', err);
+                // Clear any stale session data
+                localStorage.removeItem('nova_session');
+            }
 
             // Handle redirect callback
             if (window.location.search.includes("code=")) {
