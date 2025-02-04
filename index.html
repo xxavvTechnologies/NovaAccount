@@ -23,6 +23,59 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-badge.verified {
+            background: #34C759;
+            color: white;
+        }
+
+        .status-badge.unverified {
+            background: #FF3B30;
+            color: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: var(--space-md);
+            margin-top: var(--space-md);
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--space-md) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: var(--space-md);
+            margin-top: var(--space-md);
+        }
+
+        .app-card {
+            padding: var(--space-md);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
     </style>
 </head>
 <body>
@@ -68,15 +121,35 @@
                     <h1>Security Settings</h1>
                     
                     <div class="card">
-                        <h2>Account Security</h2>
-                        <p>Email verification: <span id="emailVerified"></span></p>
-                        <button class="btn" onclick="updatePassword()">Change Password</button>
+                        <h2>Email Verification</h2>
+                        <p>Status: <span id="emailVerified" class="status-badge">Checking...</span></p>
+                        <button class="btn-secondary" id="resendVerificationBtn" style="display: none;">
+                            Resend Verification Email
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <h2>Password</h2>
+                        <p>Last changed: <span id="passwordLastChanged">Loading...</span></p>
+                        <div class="button-group">
+                            <button class="btn" onclick="changePassword()">Change Password</button>
+                        </div>
                     </div>
 
                     <div class="card">
                         <h2>Two-Factor Authentication</h2>
-                        <p>Enhance your account security by enabling 2FA</p>
-                        <button class="btn-secondary" onclick="setup2FA()">Set Up 2FA</button>
+                        <p>Status: <span id="mfaStatus" class="status-badge">Checking...</span></p>
+                        <div class="button-group">
+                            <button class="btn" id="setupMFABtn">Set Up 2FA</button>
+                            <button class="btn-secondary" id="removeMFABtn" style="display: none;">Remove 2FA</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Recent Activity</h2>
+                        <div id="loginHistory" class="activity-list">
+                            <p class="text-secondary">Loading login history...</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -87,10 +160,9 @@
                     <h1>Privacy Settings</h1>
                     
                     <div class="card">
-                        <h2>Connected Apps</h2>
-                        <p>Manage applications connected to your Nova ID</p>
-                        <div id="connectedApps">
-                            <p class="text-secondary">No connected applications</p>
+                        <h2>Connected Applications</h2>
+                        <div id="connectedApps" class="apps-grid">
+                            <p class="text-secondary">Loading connected apps...</p>
                         </div>
                     </div>
 
@@ -158,6 +230,9 @@
                 setupNavigation();
                 showSection(window.location.hash.slice(1) || 'profile');
 
+                // Update security info
+                updateSecurityInfo(user);
+
             } catch (error) {
                 console.error('Auth error:', error);
                 window.location.href = 'signup.html';
@@ -216,6 +291,134 @@
         function setup2FA() {
             alert('2FA setup will be available soon');
         }
+
+        async function updateSecurityInfo(user) {
+            // Email verification
+            const emailVerified = document.getElementById('emailVerified');
+            const resendBtn = document.getElementById('resendVerificationBtn');
+            
+            emailVerified.textContent = user.email_verified ? 'Verified' : 'Not Verified';
+            emailVerified.className = 'status-badge ' + (user.email_verified ? 'verified' : 'unverified');
+            resendBtn.style.display = user.email_verified ? 'none' : 'block';
+
+            // MFA Status
+            const mfaStatus = document.getElementById('mfaStatus');
+            const setupMFABtn = document.getElementById('setupMFABtn');
+            const removeMFABtn = document.getElementById('removeMFABtn');
+
+            try {
+                const enrollments = await auth0Client.getMFAEnrollments();
+                const hasMFA = enrollments.length > 0;
+                
+                mfaStatus.textContent = hasMFA ? 'Enabled' : 'Not Enabled';
+                mfaStatus.className = 'status-badge ' + (hasMFA ? 'verified' : 'unverified');
+                setupMFABtn.style.display = hasMFA ? 'none' : 'block';
+                removeMFABtn.style.display = hasMFA ? 'block' : 'none';
+            } catch (error) {
+                console.error('MFA check failed:', error);
+            }
+
+            // Login History
+            try {
+                const history = await auth0Client.getLoginHistory();
+                const historyHtml = history.slice(0, 5).map(login => `
+                    <div class="activity-item">
+                        <span>${new Date(login.date).toLocaleString()}</span>
+                        <span class="text-secondary">${login.ip_address}</span>
+                    </div>
+                `).join('');
+                
+                document.getElementById('loginHistory').innerHTML = historyHtml || 
+                    '<p class="text-secondary">No recent activity</p>';
+            } catch (error) {
+                console.error('Login history failed:', error);
+            }
+
+            // Connected Apps
+            try {
+                const clients = await auth0Client.getAuthorizedClients();
+                const appsHtml = clients.map(client => `
+                    <div class="app-card">
+                        <h3>${client.name}</h3>
+                        <p class="text-secondary">${client.description || 'No description'}</p>
+                        <button class="btn-secondary" onclick="revokeAccess('${client.client_id}')">
+                            Revoke Access
+                        </button>
+                    </div>
+                `).join('');
+                
+                document.getElementById('connectedApps').innerHTML = appsHtml || 
+                    '<p class="text-secondary">No connected applications</p>';
+            } catch (error) {
+                console.error('Connected apps failed:', error);
+            }
+        }
+
+        async function resendVerification() {
+            try {
+                await auth0Client.sendEmailVerification();
+                alert('Verification email sent!');
+            } catch (error) {
+                console.error('Failed to send verification:', error);
+                alert('Failed to send verification email. Please try again later.');
+            }
+        }
+
+        async function changePassword() {
+            try {
+                await auth0Client.changePassword({
+                    connection: 'Username-Password-Authentication'
+                });
+                alert('Password reset email sent!');
+            } catch (error) {
+                console.error('Password change failed:', error);
+                alert('Failed to initiate password change. Please try again later.');
+            }
+        }
+
+        async function setupMFA() {
+            try {
+                const ticket = await auth0Client.getMFAChallenge();
+                // Open MFA enrollment in new window
+                window.open(ticket.enrollment_url, '_blank');
+            } catch (error) {
+                console.error('MFA setup failed:', error);
+                alert('Failed to setup MFA. Please try again later.');
+            }
+        }
+
+        async function removeMFA() {
+            if (!confirm('Are you sure you want to disable 2FA?')) return;
+            
+            try {
+                await auth0Client.deleteMFAEnrollment();
+                alert('2FA has been disabled');
+                updateSecurityInfo(await auth0Client.getUser());
+            } catch (error) {
+                console.error('MFA removal failed:', error);
+                alert('Failed to disable 2FA. Please try again later.');
+            }
+        }
+
+        async function revokeAccess(clientId) {
+            if (!confirm('Are you sure you want to revoke access for this application?')) return;
+            
+            try {
+                await auth0Client.revokeAuthorizedClient(clientId);
+                updateSecurityInfo(await auth0Client.getUser());
+            } catch (error) {
+                console.error('Access revocation failed:', error);
+                alert('Failed to revoke access. Please try again later.');
+            }
+        }
+
+        // Add event listeners
+        document.getElementById('resendVerificationBtn').addEventListener('click', resendVerification);
+        document.getElementById('setupMFABtn').addEventListener('click', setupMFA);
+        document.getElementById('removeMFABtn').addEventListener('click', removeMFA);
+        
+        // Update security info when user data is loaded
+        auth0Client.getUser().then(updateSecurityInfo);
     </script>
 </body>
 </html>
