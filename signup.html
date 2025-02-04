@@ -22,11 +22,11 @@
     <div class="container main-content">
         <div class="signup-container animate-in">
             <div class="card" style="max-width: 400px; margin: 48px auto;">
-                <h1 style="font-size: 24px; margin-bottom: var(--space-md);">Welcome to Nova</h1>
-                <p class="text-secondary" style="margin-bottom: var(--space-xl);">Create an account or sign in to continue</p>
+                <h1 style="font-size: 24px; margin-bottom: var(--space-md);">Sign in with Nova ID</h1>
+                <p class="text-secondary" style="margin-bottom: var(--space-xl);">Access all Nova services with one account</p>
                 
                 <button class="btn" id="signupBtn" style="width: 100%; margin-bottom: var(--space-md);">
-                    Create Account
+                    Create Nova ID
                 </button>
                 
                 <button class="btn-secondary" id="loginBtn" style="width: 100%;">
@@ -46,58 +46,71 @@
         let auth0Client;
         
         async function initAuth0() {
-            auth0Client = await auth0.createAuth0Client({
-                domain: 'auth.novawerks.xxavvgroup.com',
-                clientId: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
-                authorizationParams: {
-                    redirect_uri: window.location.origin + '/index.html'
-                },
-                cacheLocation: 'localstorage',
-                useRefreshTokens: true
-            });
-
             try {
-                // Check for existing session
-                const isAuthenticated = await auth0Client.isAuthenticated();
-                if (isAuthenticated) {
-                    // Verify the token is still valid
-                    await auth0Client.getTokenSilently({
-                        timeoutInSeconds: 10
-                    });
+                auth0Client = await auth0.createAuth0Client({
+                    domain: 'auth.novawerks.xxavvgroup.com',
+                    clientId: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
+                    authorizationParams: {
+                        redirect_uri: window.location.origin + '/index.html',
+                        audience: 'https://auth.novawerks.xxavvgroup.com/api/v2/',
+                        scope: 'openid profile email offline_access'
+                    },
+                    cacheLocation: 'localstorage',
+                    useRefreshTokens: true
+                });
+
+                // Clear any stale data
+                localStorage.removeItem('nova_session');
+
+                // If we're handling the callback, don't do anything else
+                if (window.location.search.includes("code=")) {
+                    await auth0Client.handleRedirectCallback();
                     window.location.href = 'index.html';
                     return;
                 }
-            } catch (err) {
-                console.error('Session verification failed:', err);
-                // Clear any stale session data
-                localStorage.removeItem('nova_session');
-            }
 
-            // Handle redirect callback
-            if (window.location.search.includes("code=")) {
-                await auth0Client.handleRedirectCallback();
-                window.history.replaceState({}, document.title, window.location.pathname);
-                window.location.href = 'index.html';
-                return;
-            }
+                // Check authentication status
+                const isAuthenticated = await auth0Client.isAuthenticated();
+                if (isAuthenticated) {
+                    window.location.href = 'index.html';
+                    return;
+                }
 
-            // Check if already authenticated
-            const isAuthenticated = await auth0Client.isAuthenticated();
-            if (isAuthenticated) {
-                window.location.href = 'index.html';
+                // Show the login buttons if we reach here
+                document.getElementById('signupBtn').disabled = false;
+                document.getElementById('loginBtn').disabled = false;
+
+            } catch (error) {
+                console.error('Auth initialization failed:', error);
+                document.querySelector('.text-secondary').textContent = 
+                    'Unable to initialize login. Please try again later.';
             }
         }
 
+        // Disable buttons until Auth0 is initialized
+        document.getElementById('signupBtn').disabled = true;
+        document.getElementById('loginBtn').disabled = true;
+
         document.getElementById('signupBtn').addEventListener('click', async () => {
-            await auth0Client.loginWithRedirect({
-                authorizationParams: {
-                    screen_hint: 'signup'
-                }
-            });
+            try {
+                await auth0Client.loginWithRedirect({
+                    authorizationParams: {
+                        screen_hint: 'signup'
+                    }
+                });
+            } catch (error) {
+                console.error('Signup failed:', error);
+                alert('Unable to start signup. Please try again.');
+            }
         });
 
         document.getElementById('loginBtn').addEventListener('click', async () => {
-            await auth0Client.loginWithRedirect();
+            try {
+                await auth0Client.loginWithRedirect();
+            } catch (error) {
+                console.error('Login failed:', error);
+                alert('Unable to start login. Please try again.');
+            }
         });
 
         initAuth0();

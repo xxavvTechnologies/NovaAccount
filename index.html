@@ -78,8 +78,8 @@
         }
     </style>
     <script>
-        // Add session recovery helper
         const SESSION_KEY = 'nova_session';
+        let authCheckInProgress = false;
         
         function saveSession(token) {
             localStorage.setItem(SESSION_KEY, token);
@@ -92,149 +92,34 @@
         function clearSession() {
             localStorage.removeItem(SESSION_KEY);
         }
-    </script>
-</head>
-<body>
-    <!-- Update loading state -->
-    <div id="loading" style="position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-md);">
-        <div class="loading-spinner"></div>
-        <p class="text-secondary">Loading your account...</p>
-    </div>
-
-    <!-- Hide main content initially -->
-    <div id="mainContent" style="display: none;">
-        <header class="header">
-            <div class="container header-content">
-                <nav class="primary-nav">
-                    <img src="https://d2zcpib8duehag.cloudfront.net/novaccounts-wot.png" alt="Nova" class="logo">
-                    <div class="nav-links">
-                        <a href="#profile" class="nav-link active" data-section="profileSection">Profile</a>
-                        <a href="#security" class="nav-link" data-section="securitySection">Security</a>
-                        <a href="#privacy" class="nav-link" data-section="privacySection">Privacy</a>
-                    </div>
-                </nav>
-                <button class="btn" id="logoutBtn" style="display: none;">Sign Out</button>
-            </div>
-        </header>
-
-        <div class="container main-content">
-            <!-- Profile Section -->
-            <section id="profileSection" class="section-content animate-in">
-                <div class="profile-section">
-                    <h1>Welcome, <span id="userName">User</span></h1>
-                    
-                    <div class="card">
-                        <h2>Profile</h2>
-                        <p>Email: <span id="userEmail"></span></p>
-                        <p>Last login: <span id="lastLogin"></span></p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Security Section -->
-            <section id="securitySection" class="section-content animate-in" style="display: none;">
-                <div class="profile-section">
-                    <h1>Security Settings</h1>
-                    
-                    <div class="card">
-                        <h2>Email Verification</h2>
-                        <p>Status: <span id="emailVerified" class="status-badge">Checking...</span></p>
-                        <button class="btn-secondary" id="resendVerificationBtn" style="display: none;">
-                            Resend Verification Email
-                        </button>
-                    </div>
-
-                    <div class="card">
-                        <h2>Password</h2>
-                        <p>Last changed: <span id="passwordLastChanged">Loading...</span></p>
-                        <div class="button-group">
-                            <button class="btn" onclick="changePassword()">Change Password</button>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h2>Two-Factor Authentication</h2>
-                        <p>Status: <span id="mfaStatus" class="status-badge">Checking...</span></p>
-                        <div class="button-group">
-                            <button class="btn" id="setupMFABtn">Set Up 2FA</button>
-                            <button class="btn-secondary" id="removeMFABtn" style="display: none;">Remove 2FA</button>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h2>Recent Activity</h2>
-                        <div id="loginHistory" class="activity-list">
-                            <p class="text-secondary">Loading login history...</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Privacy Section -->
-            <section id="privacySection" class="section-content animate-in" style="display: none;">
-                <div class="profile-section">
-                    <h1>Privacy Settings</h1>
-                    
-                    <div class="card">
-                        <h2>Connected Applications</h2>
-                        <div id="connectedApps" class="apps-grid">
-                            <p class="text-secondary">Loading connected apps...</p>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h2>Data & Privacy</h2>
-                        <p>Control how your data is used across Nova services</p>
-                        <a href="privacy.html" class="btn-secondary" style="display: inline-block; text-decoration: none; margin-top: var(--space-md);">
-                            Privacy Policy
-                        </a>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </div>
-
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0.0/auth0-spa-js.production.js"></script>
-    <script>
-        // Add timeout to hide loading
-        const hideLoading = () => {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-        };
-
-        // Force hide loading after 3 seconds
-        setTimeout(hideLoading, 3000);
 
         // Auth0 initialization
         (async () => {
+            if (authCheckInProgress) return;
+            authCheckInProgress = true;
+
             try {
                 const client = await auth0.createAuth0Client({
                     domain: 'auth.novawerks.xxavvgroup.com',
                     clientId: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
                     authorizationParams: {
-                        redirect_uri: window.location.origin + '/index.html'
+                        redirect_uri: window.location.origin + '/index.html',
+                        audience: 'https://auth.novawerks.xxavvgroup.com/api/v2/',
+                        scope: 'openid profile email offline_access'
                     },
-                    cacheLocation: 'localstorage', // Enable token caching
-                    useRefreshTokens: true // Enable refresh tokens
+                    cacheLocation: 'localstorage',
+                    useRefreshTokens: true
                 });
 
                 window.auth0Client = client;
 
-                // Handle the callback
+                // Handle callback first
                 if (window.location.search.includes("code=")) {
                     try {
                         const result = await client.handleRedirectCallback();
-                        // Save target URL if it was part of the original request
-                        const targetUrl = result.appState && result.appState.targetUrl 
-                            ? result.appState.targetUrl 
-                            : window.location.pathname;
-                        
-                        // Save session
                         const token = await client.getTokenSilently();
                         saveSession(token);
-
-                        // Clean URL
-                        window.history.replaceState({}, document.title, targetUrl);
+                        window.history.replaceState({}, document.title, window.location.pathname);
                     } catch (err) {
                         console.error('Callback handling failed:', err);
                         clearSession();
@@ -243,65 +128,59 @@
                     }
                 }
 
-                // Try to recover session
-                let isAuthenticated = false;
-                try {
-                    isAuthenticated = await client.isAuthenticated();
-                    
-                    // If not authenticated but we have a session, try to recover
-                    if (!isAuthenticated && getSession()) {
-                        await client.getTokenSilently({
-                            timeoutInSeconds: 10
-                        });
-                        isAuthenticated = true;
-                    }
-                } catch (err) {
-                    console.error('Session recovery failed:', err);
-                    clearSession();
-                }
-
+                // Verify authentication
+                const isAuthenticated = await client.isAuthenticated();
                 if (!isAuthenticated) {
                     clearSession();
                     window.location.href = 'signup.html';
                     return;
                 }
 
-                // Update UI with user info
-                try {
-                    const user = await client.getUser();
-                    if (!user) throw new Error('No user data');
+                // Get user info and update UI
+                const user = await client.getUser();
+                if (!user) throw new Error('No user data');
 
-                    document.getElementById('userName').textContent = user.name;
-                    document.getElementById('userEmail').textContent = user.email;
-                    document.getElementById('lastLogin').textContent = new Date(user.updated_at).toLocaleDateString();
-                    document.getElementById('emailVerified').textContent = user.email_verified ? 'Verified' : 'Not verified';
+                document.getElementById('userName').textContent = user.name || 'User';
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('lastLogin').textContent = new Date(user.updated_at).toLocaleDateString();
+                document.getElementById('emailVerified').textContent = user.email_verified ? 'Verified' : 'Not verified';
 
-                    // Hide loading and show content
-                    hideLoading();
-                    document.getElementById('logoutBtn').style.display = 'block';
+                // Hide loading and show content
+                hideLoading();
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('logoutBtn').style.display = 'block';
 
-                    // Setup navigation and security info
-                    setupNavigation();
-                    showSection(window.location.hash.slice(1) || 'profile');
-                    updateSecurityInfo(user);
-
-                } catch (error) {
-                    console.error('Profile loading failed:', error);
-                    // Don't redirect immediately, show an error message
-                    document.getElementById('loading').innerHTML = `
-                        <p class="text-secondary">Unable to load profile. 
-                            <a href="#" onclick="window.location.reload()">Try again</a> or 
-                            <a href="signup.html">sign in again</a>.
-                        </p>
-                    `;
-                }
+                // Setup navigation and security info
+                setupNavigation();
+                showSection(window.location.hash.slice(1) || 'profile');
+                updateSecurityInfo(user);
 
             } catch (error) {
-                console.error('Initialization failed:', error);
+                console.error('Auth error:', error);
                 clearSession();
                 window.location.href = 'signup.html';
+            } finally {
+                authCheckInProgress = false;
             }
         })();
+
+        // Update logout handling
+        function logout() {
+            clearSession();
+            auth0Client.logout({
+                returnTo: window.location.origin + '/signup.html',
+                clientId: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL'
+            });
+        }
+
+        // Add timeout to hide loading
+        const hideLoading = () => {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+        };
+
+        // Force hide loading after 3 seconds
+        setTimeout(hideLoading, 3000);
 
         // Navigation handling
         function setupNavigation() {
@@ -480,14 +359,6 @@
         // Update security info when user data is loaded
         auth0Client.getUser().then(updateSecurityInfo);
 
-        // Update logout handling
-        function logout() {
-            clearSession();
-            auth0Client.logout({
-                returnTo: window.location.origin + '/signup.html'
-            });
-        }
-
         // Add error recovery for token refresh
         setInterval(async () => {
             try {
@@ -515,5 +386,107 @@
             document.body.classList.remove('offline');
         });
     </script>
+</head>
+<body>
+    <!-- Update loading state -->
+    <div id="loading" style="position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-md);">
+        <div class="loading-spinner"></div>
+        <p class="text-secondary">Loading your account...</p>
+    </div>
+
+    <!-- Hide main content initially -->
+    <div id="mainContent" style="display: none;">
+        <header class="header">
+            <div class="container header-content">
+                <nav class="primary-nav">
+                    <img src="https://d2zcpib8duehag.cloudfront.net/novaccounts-wot.png" alt="Nova" class="logo">
+                    <div class="nav-links">
+                        <a href="#profile" class="nav-link active" data-section="profileSection">Profile</a>
+                        <a href="#security" class="nav-link" data-section="securitySection">Security</a>
+                        <a href="#privacy" class="nav-link" data-section="privacySection">Privacy</a>
+                    </div>
+                </nav>
+                <button class="btn" id="logoutBtn" style="display: none;">Sign Out</button>
+            </div>
+        </header>
+
+        <div class="container main-content">
+            <!-- Profile Section -->
+            <section id="profileSection" class="section-content animate-in">
+                <div class="profile-section">
+                    <h1>Welcome, <span id="userName">User</span></h1>
+                    
+                    <div class="card">
+                        <h2>Profile</h2>
+                        <p>Email: <span id="userEmail"></span></p>
+                        <p>Last login: <span id="lastLogin"></span></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Security Section -->
+            <section id="securitySection" class="section-content animate-in" style="display: none;">
+                <div class="profile-section">
+                    <h1>Security Settings</h1>
+                    
+                    <div class="card">
+                        <h2>Email Verification</h2>
+                        <p>Status: <span id="emailVerified" class="status-badge">Checking...</span></p>
+                        <button class="btn-secondary" id="resendVerificationBtn" style="display: none;">
+                            Resend Verification Email
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <h2>Password</h2>
+                        <p>Last changed: <span id="passwordLastChanged">Loading...</span></p>
+                        <div class="button-group">
+                            <button class="btn" onclick="changePassword()">Change Password</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Two-Factor Authentication</h2>
+                        <p>Status: <span id="mfaStatus" class="status-badge">Checking...</span></p>
+                        <div class="button-group">
+                            <button class="btn" id="setupMFABtn">Set Up 2FA</button>
+                            <button class="btn-secondary" id="removeMFABtn" style="display: none;">Remove 2FA</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Recent Activity</h2>
+                        <div id="loginHistory" class="activity-list">
+                            <p class="text-secondary">Loading login history...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Privacy Section -->
+            <section id="privacySection" class="section-content animate-in" style="display: none;">
+                <div class="profile-section">
+                    <h1>Privacy Settings</h1>
+                    
+                    <div class="card">
+                        <h2>Connected Applications</h2>
+                        <div id="connectedApps" class="apps-grid">
+                            <p class="text-secondary">Loading connected apps...</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>Data & Privacy</h2>
+                        <p>Control how your data is used across Nova services</p>
+                        <a href="privacy.html" class="btn-secondary" style="display: inline-block; text-decoration: none; margin-top: var(--space-md);">
+                            Privacy Policy
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0.0/auth0-spa-js.production.js"></script>
 </body>
 </html>
