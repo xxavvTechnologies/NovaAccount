@@ -9,6 +9,84 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="https://d2zcpib8duehag.cloudfront.net/novaccounts-wot.png">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <style>
+        .password-requirements {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .password-requirements.valid {
+            color: #34C759;
+        }
+
+        .social-login {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: var(--space-xl) 0;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .social-btn:hover {
+            background: var(--secondary-bg);
+        }
+
+        .social-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .or-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: var(--space-md) 0;
+            color: var(--text-secondary);
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+    </style>
+    <script>
+        // Initialize Firebase first
+        const firebaseConfig = {
+            apiKey: "AIzaSyAeNLHp2EO50B0PrZuBchOJvxhxHlVuVu4",
+            authDomain: "novasuite-e4257.firebaseapp.com",
+            projectId: "novasuite-e4257",
+            storageBucket: "novasuite-e4257.appspot.com", // Fixed storage bucket
+            messagingSenderId: "349176160657",
+            appId: "1:349176160657:web:84c4815c62706ef6f63a30",
+            measurementId: "G-C4V8H1MWTR"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+    </script>
 </head>
 <body>
     <header class="header">
@@ -22,98 +100,156 @@
     <div class="container main-content">
         <div class="signup-container animate-in">
             <div class="card" style="max-width: 400px; margin: 48px auto;">
-                <h1 style="font-size: 24px; margin-bottom: var(--space-md);">Sign in with Nova ID</h1>
-                <p class="text-secondary" style="margin-bottom: var(--space-xl);">Access all Nova services with one account</p>
-                
-                <button class="btn" id="signupBtn" style="width: 100%; margin-bottom: var(--space-md);">
-                    Create Nova ID
-                </button>
-                
-                <button class="btn-secondary" id="loginBtn" style="width: 100%;">
-                    Sign In
-                </button>
+                <div id="loginForm">
+                    <h1 style="font-size: 24px; margin-bottom: var(--space-md);">Sign in with Nova ID</h1>
+                    <p class="text-secondary" style="margin-bottom: var(--space-xl);">Access all Nova services with one account</p>
+                    
+                    <div class="social-login">
+                        <button class="social-btn" onclick="signInWithGoogle()">
+                            <img src="https://www.google.com/favicon.ico" alt="Google">
+                            Continue with Google
+                        </button>
+                        <button class="social-btn" onclick="signInWithGitHub()">
+                            <img src="https://github.com/favicon.ico" alt="GitHub">
+                            Continue with GitHub
+                        </button>
+                    </div>
 
-                <p class="text-secondary" style="font-size: 13px; margin-top: var(--space-xl);">
-                    By continuing, you agree to Nova's <a href="terms.html" style="color: var(--primary-blue);">Terms of Service</a> 
-                    and <a href="privacy.html" style="color: var(--primary-blue);">Privacy Policy</a>.
-                </p>
+                    <div class="or-divider">or</div>
+
+                    <form id="authForm" style="display: flex; flex-direction: column; gap: var(--space-md);">
+                        <div>
+                            <input type="email" id="email" placeholder="Email" required 
+                                style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
+                        </div>
+                        <div>
+                            <input type="password" id="password" placeholder="Password" required 
+                                style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
+                            <div id="passwordRequirements" class="password-requirements">
+                                Password must contain:
+                                <ul style="margin-top: 4px; margin-left: 20px;">
+                                    <li id="reqLength">At least 8 characters</li>
+                                    <li id="reqUpper">One uppercase letter</li>
+                                    <li id="reqLower">One lowercase letter</li>
+                                    <li id="reqNumber">One number</li>
+                                    <li id="reqSpecial">One special character</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%; margin-bottom: var(--space-md);">
+                            Sign In
+                        </button>
+                    </form>
+
+                    <p style="text-align: center; margin: var(--space-md) 0;">
+                        <a href="#" id="toggleAuth" style="color: var(--primary-blue); text-decoration: none;">
+                            Create new account
+                        </a>
+                    </p>
+
+                    <p class="text-secondary" style="font-size: 13px; margin-top: var(--space-xl);">
+                        By continuing, you agree to Nova's <a href="https://mxavniiv.wixstudio.com/xg-ts/help-center/xts1-hc004" target="_blank" style="color: var(--primary-blue);">Terms of Service</a> 
+                        and <a href="https://mxavniiv.wixstudio.com/xg-ts/help-center/xts1-hc005" target="_blank" style="color: var(--primary-blue);">Privacy Policy</a>.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0.0/auth0-spa-js.production.js"></script>
     <script>
-        let auth0Client;
-        
-        async function initAuth0() {
-            try {
-                auth0Client = await auth0.createAuth0Client({
-                    domain: 'auth.novawerks.xxavvgroup.com',
-                    clientId: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
-                    authorizationParams: {
-                        redirect_uri: window.location.origin,
-                        audience: 'https://auth.novawerks.xxavvgroup.com/api/v2/',
-                        scope: 'openid profile email offline_access'
-                    },
-                    cacheLocation: 'localstorage',
-                    useRefreshTokens: true
-                });
+        // Remove duplicate Firebase initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Use the already initialized auth instance
+            let isLoginMode = true;
+            const authForm = document.getElementById('authForm');
+            const toggleAuth = document.getElementById('toggleAuth');
+            const formTitle = document.querySelector('h1');
 
-                // Clear any stale data
-                localStorage.removeItem('nova_session');
+            toggleAuth.addEventListener('click', (e) => {
+                e.preventDefault();
+                isLoginMode = !isLoginMode;
+                formTitle.textContent = isLoginMode ? 'Sign in with Nova ID' : 'Create Nova ID';
+                toggleAuth.textContent = isLoginMode ? 'Create new account' : 'Sign in instead';
+                authForm.querySelector('button[type="submit"]').textContent = 
+                    isLoginMode ? 'Sign In' : 'Create Account';
+            });
 
-                // If we're handling the callback, don't do anything else
-                if (window.location.search.includes("code=")) {
-                    await auth0Client.handleRedirectCallback();
-                    window.location.href = 'index.html';
+            authForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                // Check all password requirements
+                const requirements = {
+                    length: /^.{8,}$/,
+                    upper: /[A-Z]/,
+                    lower: /[a-z]/,
+                    number: /[0-9]/,
+                    special: /[^A-Za-z0-9]/
+                };
+                const isPasswordValid = Object.values(requirements).every(regex => regex.test(password));
+                if (!isPasswordValid) {
+                    alert('Please meet all password requirements');
                     return;
                 }
 
-                // Check authentication status
-                const isAuthenticated = await auth0Client.isAuthenticated();
-                if (isAuthenticated) {
-                    window.location.href = 'index.html';
-                    return;
-                }
-
-                // Show the login buttons if we reach here
-                document.getElementById('signupBtn').disabled = false;
-                document.getElementById('loginBtn').disabled = false;
-
-            } catch (error) {
-                console.error('Auth initialization failed:', error);
-                document.querySelector('.text-secondary').textContent = 
-                    'Unable to initialize login. Please try again later.';
-            }
-        }
-
-        // Disable buttons until Auth0 is initialized
-        document.getElementById('signupBtn').disabled = true;
-        document.getElementById('loginBtn').disabled = true;
-
-        document.getElementById('signupBtn').addEventListener('click', async () => {
-            try {
-                await auth0Client.loginWithRedirect({
-                    authorizationParams: {
-                        screen_hint: 'signup'
+                try {
+                    if (isLoginMode) {
+                        await auth.signInWithEmailAndPassword(email, password);
+                    } else {
+                        await auth.createUserWithEmailAndPassword(email, password);
+                        await auth.currentUser.sendEmailVerification();
                     }
-                });
-            } catch (error) {
-                console.error('Signup failed:', error);
-                alert('Unable to start signup. Please try again.');
-            }
-        });
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    alert(error.message);
+                }
+            });
 
-        document.getElementById('loginBtn').addEventListener('click', async () => {
-            try {
-                await auth0Client.loginWithRedirect();
-            } catch (error) {
-                console.error('Login failed:', error);
-                alert('Unable to start login. Please try again.');
-            }
-        });
+            // Check if already logged in
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    window.location.href = 'index.html';
+                }
+            });
 
-        initAuth0();
+            // Password validation
+            const password = document.getElementById('password');
+            const requirements = {
+                length: /^.{8,}$/,
+                upper: /[A-Z]/,
+                lower: /[a-z]/,
+                number: /[0-9]/,
+                special: /[^A-Za-z0-9]/
+            };
+
+            password.addEventListener('input', () => {
+                const value = password.value;
+                for (const [key, regex] of Object.entries(requirements)) {
+                    const elem = document.getElementById(`req${key.charAt(0).toUpperCase() + key.slice(1)}`);
+                    if (regex.test(value)) {
+                        elem.classList.add('valid');
+                    } else {
+                        elem.classList.remove('valid');
+                    }
+                }
+            });
+
+            // Social login handlers
+            window.signInWithGoogle = () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then(() => window.location.href = 'index.html')
+                    .catch(error => alert(error.message));
+            };
+
+            window.signInWithGitHub = () => {
+                const provider = new firebase.auth.GithubAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then(() => window.location.href = 'index.html')
+                    .catch(error => alert(error.message));
+            };
+        });
     </script>
 
     <style>
@@ -138,6 +274,17 @@
 
         .btn-secondary:hover {
             background: var(--secondary-bg);
+        }
+
+        input {
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 15px;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary-blue) !important;
         }
     </style>
 </body>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Account Deletion - Nova Account</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="notifications.js"></script>
+    <style>
+        .auth-form {
+            display: none;
+            margin-top: var(--space-lg);
+        }
+        
+        .form-group {
+            margin-bottom: var(--space-md);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 4px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container main-content">
+        <div class="card" style="max-width: 400px; margin: 48px auto;">
+            <h1>Confirm Account Deletion</h1>
+            <p class="text-secondary">This action cannot be undone.</p>
+            
+            <!-- Add re-authentication form -->
+            <div id="reAuthForm" class="auth-form">
+                <p class="text-secondary">Please confirm your password to continue:</p>
+                <div class="form-group">
+                    <input type="password" id="password" class="form-input" placeholder="Your password">
+                </div>
+                <div class="button-group">
+                    <button class="btn-danger" onclick="reAuthAndDelete()">Confirm Deletion</button>
+                    <button class="btn-secondary" onclick="window.location.href='index.html'">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Initial confirmation buttons -->
+            <div id="initialButtons" class="button-group" style="margin-top: var(--space-xl);">
+                <button class="btn-danger" onclick="startDeletion()">Delete My Account</button>
+                <button class="btn-secondary" onclick="window.location.href='index.html'">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Firebase with your config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAeNLHp2EO50B0PrZuBchOJvxhxHlVuVu4",
+            authDomain: "novasuite-e4257.firebaseapp.com",
+            projectId: "novasuite-e4257",
+            storageBucket: "novasuite-e4257.appspot.com",
+            messagingSenderId: "349176160657",
+            appId: "1:349176160657:web:84c4815c62706ef6f63a30",
+            measurementId: "G-C4V8H1MWTR"
+        };
+
+        // Wait for DOM and Firebase SDK to load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+
+            function showReAuthForm() {
+                document.getElementById('initialButtons').style.display = 'none';
+                document.getElementById('reAuthForm').style.display = 'block';
+            }
+
+            window.startDeletion = function() {
+                showReAuthForm();
+            };
+
+            window.reAuthAndDelete = async function() {
+                try {
+                    const user = auth.currentUser;
+                    if (!user) {
+                        throw new Error('No user logged in');
+                    }
+
+                    const password = document.getElementById('password').value;
+                    const credential = firebase.auth.EmailAuthProvider.credential(
+                        user.email,
+                        password
+                    );
+
+                    // Re-authenticate
+                    await user.reauthenticateWithCredential(credential);
+
+                    // Delete user data from Firestore first
+                    await db.collection('users').doc(user.uid).delete();
+                    
+                    // Then delete the account
+                    await user.delete();
+                    notifications.success('Your account has been deleted.');
+                    window.location.href = 'signup.html';
+                } catch (error) {
+                    console.error('Deletion error:', error);
+                    if (error.code === 'auth/wrong-password') {
+                        notifications.error('Incorrect password. Please try again.');
+                    } else {
+                        notifications.error('Failed to delete account: ' + error.message);
+                    }
+                }
+            };
+
+            // Check authentication state
+            auth.onAuthStateChanged((user) => {
+                if (!user) {
+                    window.location.href = 'signup.html';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

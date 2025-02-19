@@ -76,8 +76,178 @@
             flex-direction: column;
             gap: var(--space-sm);
         }
+
+        .profile-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+
+        .photo-upload {
+            display: none;
+        }
+
+        .device-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-md) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .danger-zone {
+            border-color: #FF3B30;
+        }
+
+        .danger-zone h2 {
+            color: #FF3B30;
+        }
+
+        .btn-danger {
+            background: #FF3B30;
+            color: white;
+        }
     </style>
+
+    <!-- Load Firebase scripts first -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="notifications.js"></script>
+    
+    <!-- Initialize Firebase before any other scripts -->
     <script>
+        // Add helper functions first
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+        }
+
+        function setupNavigation() {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const section = link.getAttribute('data-section');
+                    showSection(section);
+                });
+            });
+        }
+
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.section-content');
+            sections.forEach(s => s.style.display = 'none');
+            
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(link => link.classList.remove('active'));
+            
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+                document.querySelector(`[data-section="${sectionId}"]`)?.classList.add('active');
+            }
+        }
+
+        // Wait for DOM to load before adding event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const resendBtn = document.getElementById('resendVerificationBtn');
+            if (resendBtn) {
+                resendBtn.addEventListener('click', resendVerification);
+            }
+
+            // Remove auth0 references
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', logout);
+            }
+
+            // Move photo upload event listener here
+            const photoUpload = document.getElementById('photoUpload');
+            if (photoUpload) {
+                photoUpload.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const storage = firebase.storage();
+                    const storageRef = storage.ref();
+                    const photoRef = storageRef.child(`profile-photos/${auth.currentUser.uid}`);
+
+                    try {
+                        await photoRef.put(file);
+                        const photoURL = await photoRef.getDownloadURL();
+                        await auth.currentUser.updateProfile({ photoURL });
+                        document.getElementById('profilePhoto').src = photoURL;
+                    } catch (error) {
+                        notifications.error('Failed to upload photo: ' + error.message);
+                    }
+                });
+            }
+        });
+
+        // Firebase configuration remains the same
+        const firebaseConfig = {
+            apiKey: "AIzaSyAeNLHp2EO50B0PrZuBchOJvxhxHlVuVu4",
+            authDomain: "novasuite-e4257.firebaseapp.com",
+            projectId: "novasuite-e4257",
+            storageBucket: "novasuite-e4257.appspot.com", // Fixed storage bucket
+            messagingSenderId: "349176160657",
+            appId: "1:349176160657:web:84c4815c62706ef6f63a30",
+            measurementId: "G-C4V8H1MWTR"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Auth state listener
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'signup.html';
+                return;
+            }
+
+            // Update UI with user info
+            const elements = {
+                userName: document.getElementById('userName'),
+                userEmail: document.getElementById('userEmail'),
+                lastLogin: document.getElementById('lastLogin'),
+                emailVerified: document.getElementById('emailVerified'),
+                mainContent: document.getElementById('mainContent'),
+                logoutBtn: document.getElementById('logoutBtn')
+            };
+
+            if (elements.userName) elements.userName.textContent = user.displayName || 'User';
+            if (elements.userEmail) elements.userEmail.textContent = user.email;
+            if (elements.lastLogin) elements.lastLogin.textContent = new Date(user.metadata.lastSignInTime).toLocaleDateString();
+            if (elements.emailVerified) elements.emailVerified.textContent = user.emailVerified ? 'Verified' : 'Not verified';
+
+            hideLoading();
+            if (elements.mainContent) elements.mainContent.style.display = 'block';
+            if (elements.logoutBtn) elements.logoutBtn.style.display = 'block';
+
+            setupNavigation();
+            showSection(window.location.hash.slice(1) || 'profileSection');
+            updateSecurityInfo(user);
+
+            // Load additional data
+            loadDevices();
+            document.getElementById('displayName').value = user.displayName || '';
+            if (user.photoURL) {
+                document.getElementById('profilePhoto').src = user.photoURL;
+            }
+
+            // Load profile data from Firestore
+            loadProfileData();
+        });
+
         const SESSION_KEY = 'nova_session';
         let authCheckInProgress = false;
         
@@ -93,142 +263,10 @@
             localStorage.removeItem(SESSION_KEY);
         }
 
-        // Auth0 initialization
-        (async () => {
-            if (authCheckInProgress) return;
-            authCheckInProgress = true;
-
-            try {
-                const client = await auth0.createAuth0Client({
-                    domain: 'auth.novawerks.xxavvgroup.com',
-                    clientId: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL',
-                    authorizationParams: {
-                        redirect_uri: window.location.origin,
-                        audience: 'https://auth.novawerks.xxavvgroup.com/api/v2/',
-                        scope: 'openid profile email offline_access'
-                    },
-                    cacheLocation: 'localstorage',
-                    useRefreshTokens: true
-                });
-
-                window.auth0Client = client;
-
-                // Handle callback first
-                if (window.location.search.includes("code=")) {
-                    try {
-                        const result = await client.handleRedirectCallback();
-                        const token = await client.getTokenSilently();
-                        saveSession(token);
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    } catch (err) {
-                        console.error('Callback handling failed:', err);
-                        clearSession();
-                        window.location.href = 'signup.html';
-                        return;
-                    }
-                }
-
-                // Verify authentication
-                const isAuthenticated = await client.isAuthenticated();
-                if (!isAuthenticated) {
-                    clearSession();
-                    window.location.href = 'signup.html';
-                    return;
-                }
-
-                // Get user info and update UI
-                const user = await client.getUser();
-                if (!user) throw new Error('No user data');
-
-                document.getElementById('userName').textContent = user.name || 'User';
-                document.getElementById('userEmail').textContent = user.email;
-                document.getElementById('lastLogin').textContent = new Date(user.updated_at).toLocaleDateString();
-                document.getElementById('emailVerified').textContent = user.email_verified ? 'Verified' : 'Not verified';
-
-                // Hide loading and show content
-                hideLoading();
-                document.getElementById('mainContent').style.display = 'block';
-                document.getElementById('logoutBtn').style.display = 'block';
-
-                // Setup navigation and security info
-                setupNavigation();
-                showSection(window.location.hash.slice(1) || 'profile');
-                updateSecurityInfo(user);
-
-            } catch (error) {
-                console.error('Auth error:', error);
-                clearSession();
-                window.location.href = 'signup.html';
-            } finally {
-                authCheckInProgress = false;
-            }
-        })();
-
-        // Update logout handling
         function logout() {
-            clearSession();
-            auth0Client.logout({
-                returnTo: window.location.origin + '/signup.html',
-                clientId: 'nOTN4BAME0YkdMMCP5M2hYvjGz2Ar7WL'
+            auth.signOut().then(() => {
+                window.location.href = 'signup.html';
             });
-        }
-
-        // Add timeout to hide loading
-        const hideLoading = () => {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-        };
-
-        // Force hide loading after 3 seconds
-        setTimeout(hideLoading, 3000);
-
-        // Navigation handling
-        function setupNavigation() {
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const section = link.getAttribute('data-section');
-                    showSection(section);
-                });
-            });
-
-            // Logout button
-            document.getElementById('logoutBtn').addEventListener('click', logout);
-        }
-
-        function showSection(sectionId) {
-            // Default to profile if no section specified
-            const section = sectionId.replace('Section', '') || 'profile';
-            const targetId = section + 'Section';
-
-            // Hide all sections
-            document.querySelectorAll('.section-content').forEach(s => {
-                s.style.display = 'none';
-            });
-
-            // Remove active class from all links
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-
-            // Show target section and activate its link
-            document.getElementById(targetId).style.display = 'block';
-            document.querySelector(`[data-section="${targetId}"]`).classList.add('active');
-        }
-
-        async function updatePassword() {
-            try {
-                await auth0Client.changePassword({
-                    connection: 'Username-Password-Authentication'
-                });
-                alert('Password reset email sent!');
-            } catch (err) {
-                console.error('Error:', err);
-            }
-        }
-
-        function setup2FA() {
-            alert('2FA setup will be available soon');
         }
 
         async function updateSecurityInfo(user) {
@@ -236,146 +274,135 @@
             const emailVerified = document.getElementById('emailVerified');
             const resendBtn = document.getElementById('resendVerificationBtn');
             
-            emailVerified.textContent = user.email_verified ? 'Verified' : 'Not Verified';
-            emailVerified.className = 'status-badge ' + (user.email_verified ? 'verified' : 'unverified');
-            resendBtn.style.display = user.email_verified ? 'none' : 'block';
-
-            // MFA Status
-            const mfaStatus = document.getElementById('mfaStatus');
-            const setupMFABtn = document.getElementById('setupMFABtn');
-            const removeMFABtn = document.getElementById('removeMFABtn');
-
-            try {
-                const enrollments = await auth0Client.getMFAEnrollments();
-                const hasMFA = enrollments.length > 0;
-                
-                mfaStatus.textContent = hasMFA ? 'Enabled' : 'Not Enabled';
-                mfaStatus.className = 'status-badge ' + (hasMFA ? 'verified' : 'unverified');
-                setupMFABtn.style.display = hasMFA ? 'none' : 'block';
-                removeMFABtn.style.display = hasMFA ? 'block' : 'none';
-            } catch (error) {
-                console.error('MFA check failed:', error);
-            }
-
-            // Login History
-            try {
-                const history = await auth0Client.getLoginHistory();
-                const historyHtml = history.slice(0, 5).map(login => `
-                    <div class="activity-item">
-                        <span>${new Date(login.date).toLocaleString()}</span>
-                        <span class="text-secondary">${login.ip_address}</span>
-                    </div>
-                `).join('');
-                
-                document.getElementById('loginHistory').innerHTML = historyHtml || 
-                    '<p class="text-secondary">No recent activity</p>';
-            } catch (error) {
-                console.error('Login history failed:', error);
-            }
-
-            // Connected Apps
-            try {
-                const clients = await auth0Client.getAuthorizedClients();
-                const appsHtml = clients.map(client => `
-                    <div class="app-card">
-                        <h3>${client.name}</h3>
-                        <p class="text-secondary">${client.description || 'No description'}</p>
-                        <button class="btn-secondary" onclick="revokeAccess('${client.client_id}')">
-                            Revoke Access
-                        </button>
-                    </div>
-                `).join('');
-                
-                document.getElementById('connectedApps').innerHTML = appsHtml || 
-                    '<p class="text-secondary">No connected applications</p>';
-            } catch (error) {
-                console.error('Connected apps failed:', error);
-            }
+            emailVerified.textContent = user.emailVerified ? 'Verified' : 'Not Verified';
+            emailVerified.className = 'status-badge ' + (user.emailVerified ? 'verified' : 'unverified');
+            resendBtn.style.display = user.emailVerified ? 'none' : 'block';
         }
 
         async function resendVerification() {
             try {
-                await auth0Client.sendEmailVerification();
-                alert('Verification email sent!');
+                await auth.currentUser.sendEmailVerification();
+                notifications.info('Verification email sent!');
             } catch (error) {
                 console.error('Failed to send verification:', error);
-                alert('Failed to send verification email. Please try again later.');
+                notifications.error('Failed to send verification email. Please try again later.');
             }
         }
 
         async function changePassword() {
             try {
-                await auth0Client.changePassword({
-                    connection: 'Username-Password-Authentication'
-                });
-                alert('Password reset email sent!');
+                await auth.sendPasswordResetEmail(auth.currentUser.email);
+                notifications.info('Password reset email sent!');
             } catch (error) {
                 console.error('Password change failed:', error);
-                alert('Failed to initiate password change. Please try again later.');
+                notifications.error('Failed to initiate password change. Please try again later.');
             }
         }
 
-        async function setupMFA() {
+        async function updateProfile() {
+            const displayName = document.getElementById('displayName').value;
             try {
-                const ticket = await auth0Client.getMFAChallenge();
-                // Open MFA enrollment in new window
-                window.open(ticket.enrollment_url, '_blank');
+                // Store profile data in Firestore
+                await db.collection('users').doc(auth.currentUser.uid).set({
+                    displayName: displayName,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                await auth.currentUser.updateProfile({ displayName });
+                await sendConfirmationEmail('profile_update');
+                notifications.success('Profile updated successfully! Confirmation email sent.');
             } catch (error) {
-                console.error('MFA setup failed:', error);
-                alert('Failed to setup MFA. Please try again later.');
+                notifications.error('Failed to update profile: ' + error.message);
             }
         }
 
-        async function removeMFA() {
-            if (!confirm('Are you sure you want to disable 2FA?')) return;
+        async function loadDevices() {
+            const devices = await auth.fetchSignInMethodsForEmail(auth.currentUser.email);
+            const deviceList = document.getElementById('deviceList');
+            deviceList.innerHTML = devices.map(device => `
+                <li class="device-item">
+                    <span>${device}</span>
+                    <button class="btn-secondary" onclick="revokeDevice('${device}')">Revoke</button>
+                </li>
+            `).join('');
+        }
+
+        async function deleteAccount() {
+            if (!confirm('Are you sure you want to delete your account? This cannot be undone.')) return;
             
             try {
-                await auth0Client.deleteMFAEnrollment();
-                alert('2FA has been disabled');
-                updateSecurityInfo(await auth0Client.getUser());
+                await sendConfirmationEmail('account_deletion');
+                notifications.info('Please check your email to confirm account deletion.');
             } catch (error) {
-                console.error('MFA removal failed:', error);
-                alert('Failed to disable 2FA. Please try again later.');
+                notifications.error('Failed to initiate account deletion: ' + error.message);
             }
         }
 
-        async function revokeAccess(clientId) {
-            if (!confirm('Are you sure you want to revoke access for this application?')) return;
-            
-            try {
-                await auth0Client.revokeAuthorizedClient(clientId);
-                updateSecurityInfo(await auth0Client.getUser());
-            } catch (error) {
-                console.error('Access revocation failed:', error);
-                alert('Failed to revoke access. Please try again later.');
-            }
+        async function exportData() {
+            const user = auth.currentUser;
+            const userData = {
+                profile: {
+                    displayName: user.displayName,
+                    email: user.email,
+                    photoURL: user.photoURL,
+                    emailVerified: user.emailVerified,
+                    createdAt: user.metadata.creationTime,
+                    lastLogin: user.metadata.lastSignInTime
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(userData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'nova-account-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
-        // Add event listeners
-        document.getElementById('resendVerificationBtn').addEventListener('click', resendVerification);
-        document.getElementById('setupMFABtn').addEventListener('click', setupMFA);
-        document.getElementById('removeMFABtn').addEventListener('click', removeMFA);
-        
-        // Update security info when user data is loaded
-        auth0Client.getUser().then(updateSecurityInfo);
+        async function sendConfirmationEmail(action) {
+            const user = auth.currentUser;
+            const actionData = {
+                userId: user.uid,
+                action: action,
+                timestamp: new Date().toISOString()
+            };
 
-        // Add error recovery for token refresh
-        setInterval(async () => {
-            try {
-                if (auth0Client) {
-                    await auth0Client.getTokenSilently({
-                        timeoutInSeconds: 10
+            // Store action in Firestore
+            await db.collection('notifications').add(actionData);
+
+            // Send email based on action type
+            switch(action) {
+                case 'profile_update':
+                    await auth.currentUser.sendEmailVerification({
+                        handleCodeInApp: true,
+                        url: window.location.origin + '/index.html'
                     });
-                }
-            } catch (err) {
-                console.error('Token refresh failed:', err);
-                // Only redirect if it's a fatal error
-                if (err.error === 'login_required') {
-                    clearSession();
-                    window.location.href = 'signup.html';
-                }
+                    break;
+                case 'account_deletion':
+                    // Send deletion confirmation email
+                    await auth.currentUser.sendEmailVerification({
+                        handleCodeInApp: true,
+                        url: window.location.origin + '/delete-confirmation.html'
+                    });
+                    break;
             }
-        }, 5 * 60 * 1000); // Check every 5 minutes
+        }
+
+        async function loadProfileData() {
+            try {
+                const doc = await db.collection('users').doc(auth.currentUser.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.displayName) {
+                        document.getElementById('displayName').value = data.displayName;
+                        document.getElementById('userName').textContent = data.displayName;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
 
         // Update event listeners
         window.addEventListener('offline', () => {
@@ -418,8 +445,49 @@
                     
                     <div class="card">
                         <h2>Profile</h2>
-                        <p>Email: <span id="userEmail"></span></p>
-                        <p>Last login: <span id="lastLogin"></span></p>
+                        <div style="display: flex; gap: var(--space-xl); align-items: start;">
+                            <div>
+                                <img id="profilePhoto" src="https://d2zcpib8duehag.cloudfront.net/default-avatar.png" 
+                                    alt="Profile" class="profile-photo">
+                                <input type="file" id="photoUpload" class="photo-upload" accept="image/*">
+                                <button class="btn-secondary" onclick="document.getElementById('photoUpload').click()"
+                                    style="margin-top: var(--space-md)">
+                                    Change Photo
+                                </button>
+                            </div>
+                            <div style="flex-grow: 1;">
+                                <div style="margin-bottom: var(--space-md);">
+                                    <label>Display Name</label>
+                                    <input type="text" id="displayName" class="form-input"
+                                        style="width: 100%; margin-top: 4px;">
+                                    <button class="btn" onclick="updateProfile()" 
+                                        style="margin-top: var(--space-md)">Save Changes</button>
+                                </div>
+                                <p>Email: <span id="userEmail"></span></p>
+                                <p>Last login: <span id="lastLogin"></span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New sections for profile -->
+                    <div class="card">
+                        <h2>Connected Devices</h2>
+                        <ul id="deviceList" class="device-list">
+                            <li class="text-secondary">Loading devices...</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h2>Login Methods</h2>
+                        <div id="loginMethods" style="display: flex; flex-direction: column; gap: var(--space-md);">
+                        </div>
+                    </div>
+
+                    <div class="card danger-zone">
+                        <h2>Delete Account</h2>
+                        <p class="text-secondary">This action cannot be undone.</p>
+                        <button class="btn-danger" onclick="deleteAccount()"
+                            style="margin-top: var(--space-md)">Delete My Account</button>
                     </div>
                 </div>
             </section>
@@ -446,18 +514,16 @@
                     </div>
 
                     <div class="card">
-                        <h2>Two-Factor Authentication</h2>
-                        <p>Status: <span id="mfaStatus" class="status-badge">Checking...</span></p>
-                        <div class="button-group">
-                            <button class="btn" id="setupMFABtn">Set Up 2FA</button>
-                            <button class="btn-secondary" id="removeMFABtn" style="display: none;">Remove 2FA</button>
+                        <h2>Recent Activity</h2>
+                        <div id="loginHistory" class="activity-list">
+                            <p class="text-secondary">Loading login history...</p>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h2>Recent Activity</h2>
-                        <div id="loginHistory" class="activity-list">
-                            <p class="text-secondary">Loading login history...</p>
+                        <h2>Login Activity</h2>
+                        <div id="loginActivity" class="activity-list">
+                            <!-- Will be populated with login history -->
                         </div>
                     </div>
                 </div>
@@ -482,11 +548,16 @@
                             Privacy Policy
                         </a>
                     </div>
+
+                    <div class="card">
+                        <h2>Data Export</h2>
+                        <p>Download a copy of your Nova Account data</p>
+                        <button class="btn" onclick="exportData()" 
+                            style="margin-top: var(--space-md)">Request Data Export</button>
+                    </div>
                 </div>
             </section>
         </div>
     </div>
-
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0.0/auth0-spa-js.production.js"></script>
 </body>
 </html>
