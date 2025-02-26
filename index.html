@@ -2,14 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Nova Account</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="https://d2zcpib8duehag.cloudfront.net/novaccounts-wot.png">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fluentui/icons@1.1.0/fonts/FluentSystemIcons.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         .loading-spinner {
             width: 40px;
@@ -398,6 +402,9 @@
                         document.getElementById('displayName').value = data.displayName;
                         document.getElementById('userName').textContent = data.displayName;
                     }
+                    if (data.photoURL) {
+                        document.getElementById('profilePhoto').src = data.photoURL;
+                    }
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
@@ -412,6 +419,154 @@
         window.addEventListener('online', () => {
             document.body.classList.remove('offline');
         });
+
+        // Bottom Navigation Handler
+document.addEventListener('DOMContentLoaded', () => {
+    const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+    
+    bottomNavItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = item.getAttribute('data-section');
+            
+            // Update active states
+            bottomNavItems.forEach(navItem => navItem.classList.remove('active'));
+            item.classList.add('active');
+            
+            // Show selected section
+            showSection(section);
+            
+            // Smooth scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+});
+
+async function handleProfilePhotoUpdate(file) {
+    const photoElement = document.getElementById('profilePhoto');
+    const uploadButton = document.getElementById('photoUploadBtn');
+    
+    if (!file || !file.type.startsWith('image/')) {
+        notifications.error('Please select a valid image file.');
+        return;
+    }
+
+    // Check file size (limit to 1MB)
+    if (file.size > 1024 * 1024) {
+        notifications.error('Please select an image smaller than 1MB');
+        return;
+    }
+
+    try {
+        // Show loading state
+        uploadButton.disabled = true;
+        uploadButton.textContent = 'Uploading...';
+        photoElement.style.opacity = '0.5';
+
+        // Convert to base64
+        const base64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+        });
+
+        // Store in Firestore
+        await db.collection('users').doc(auth.currentUser.uid).update({
+            photoURL: base64,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Update user profile and UI
+        await auth.currentUser.updateProfile({ photoURL: base64 });
+        photoElement.src = base64;
+        notifications.success('Profile photo updated successfully!');
+
+    } catch (error) {
+        console.error('Photo upload error:', error);
+        notifications.error('Failed to update profile photo: ' + error.message);
+        // Restore original photo if available
+        if (auth.currentUser.photoURL) {
+            photoElement.src = auth.currentUser.photoURL;
+        }
+    } finally {
+        // Reset UI state
+        uploadButton.disabled = false;
+        uploadButton.textContent = 'Change Photo';
+        photoElement.style.opacity = '1';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // ...existing DOMContentLoaded code...
+
+    // Update photo upload handling
+    const photoUpload = document.getElementById('photoUpload');
+    if (photoUpload) {
+        photoUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleProfilePhotoUpdate(file);
+            }
+        });
+    }
+
+    // Save notification preferences
+    const emailNotifs = document.getElementById('emailNotifications');
+    const securityAlerts = document.getElementById('securityAlerts');
+    
+    emailNotifs?.addEventListener('change', async (e) => {
+        await updateUserPreferences({ emailNotifications: e.target.checked });
+    });
+
+    securityAlerts?.addEventListener('change', async (e) => {
+        await updateUserPreferences({ securityAlerts: e.target.checked });
+    });
+
+    // Save language and timezone
+    const language = document.getElementById('language');
+    const timezone = document.getElementById('timezone');
+
+    language?.addEventListener('change', async (e) => {
+        await updateUserPreferences({ language: e.target.value });
+    });
+
+    timezone?.addEventListener('change', async (e) => {
+        await updateUserPreferences({ timezone: e.target.value });
+    });
+});
+
+async function updateUserPreferences(preferences) {
+    try {
+        await db.collection('users').doc(auth.currentUser.uid).update({
+            preferences: firebase.firestore.FieldValue.arrayUnion(preferences),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        notifications.success('Preferences updated successfully!');
+    } catch (error) {
+        notifications.error('Failed to update preferences: ' + error.message);
+    }
+}
+
+async function linkGoogle() {
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const result = await auth.currentUser.linkWithPopup(provider);
+        notifications.success('Google account linked successfully!');
+    } catch (error) {
+        notifications.error('Failed to link Google account: ' + error.message);
+    }
+}
+
+async function linkGitHub() {
+    try {
+        const provider = new firebase.auth.GithubAuthProvider();
+        const result = await auth.currentUser.linkWithPopup(provider);
+        notifications.success('GitHub account linked successfully!');
+    } catch (error) {
+        notifications.error('Failed to link GitHub account: ' + error.message);
+    }
+}
+
     </script>
 </head>
 <body>
@@ -450,7 +605,7 @@
                                 <img id="profilePhoto" src="https://d2zcpib8duehag.cloudfront.net/default-avatar.png" 
                                     alt="Profile" class="profile-photo">
                                 <input type="file" id="photoUpload" class="photo-upload" accept="image/*">
-                                <button class="btn-secondary" onclick="document.getElementById('photoUpload').click()"
+                                <button id="photoUploadBtn" class="btn-secondary" onclick="document.getElementById('photoUpload').click()"
                                     style="margin-top: var(--space-md)">
                                     Change Photo
                                 </button>
@@ -488,6 +643,108 @@
                         <p class="text-secondary">This action cannot be undone.</p>
                         <button class="btn-danger" onclick="deleteAccount()"
                             style="margin-top: var(--space-md)">Delete My Account</button>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="ri-links-line"></i> Linked Accounts</h2>
+                        <div class="linked-accounts">
+                            <div class="linked-account-item">
+                                <div class="account-info">
+                                    <i class="ri-google-line"></i>
+                                    <div>
+                                        <h3>Google</h3>
+                                        <p class="text-secondary">Link your Google account for easier sign-in</p>
+                                    </div>
+                                </div>
+                                <button class="btn-secondary" onclick="linkGoogle()">Link Account</button>
+                            </div>
+                            <div class="linked-account-item">
+                                <div class="account-info">
+                                    <i class="ri-github-line"></i>
+                                    <div>
+                                        <h3>GitHub</h3>
+                                        <p class="text-secondary">Connect your GitHub account</p>
+                                    </div>
+                                </div>
+                                <button class="btn-secondary" onclick="linkGitHub()">Link Account</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="ri-notification-4-line"></i> Notification Preferences</h2>
+                        <div class="settings-list">
+                            <div class="settings-item">
+                                <div>
+                                    <h3>Email Notifications</h3>
+                                    <p class="text-secondary">Receive important updates via email</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" id="emailNotifications">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="settings-item">
+                                <div>
+                                    <h3>Security Alerts</h3>
+                                    <p class="text-secondary">Get notified about account security events</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" id="securityAlerts" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="ri-global-line"></i> Language & Region</h2>
+                        <div class="form-group">
+                            <label class="form-label">Language</label>
+                            <select class="form-input" id="language">
+                                <option value="en">English</option>
+                                <option value="es">Español</option>
+                                <option value="fr">Français</option>
+                                <option value="de">Deutsch</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Time Zone</label>
+                            <select class="form-input" id="timezone">
+                                <option value="UTC">UTC</option>
+                                <option value="America/New_York">Eastern Time</option>
+                                <option value="America/Los_Angeles">Pacific Time</option>
+                                <option value="Europe/London">London</option>
+                                <option value="Asia/Tokyo">Tokyo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="ri-shield-star-line"></i> Privacy Controls</h2>
+                        <div class="settings-list">
+                            <div class="settings-item">
+                                <div>
+                                    <h3>Activity Status</h3>
+                                    <p class="text-secondary">Show when you're active</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" id="activityStatus" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="settings-item">
+                                <div>
+                                    <h3>Profile Visibility</h3>
+                                    <p class="text-secondary">Control who can see your profile</p>
+                                </div>
+                                <select class="form-input" id="profileVisibility">
+                                    <option value="public">Public</option>
+                                    <option value="private">Private</option>
+                                    <option value="friends">Friends Only</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -559,5 +816,21 @@
             </section>
         </div>
     </div>
+
+    <!-- Mobile Bottom Navigation -->
+<nav class="bottom-nav">
+    <a href="#profileSection" class="bottom-nav-item active" data-section="profileSection">
+        <i class="ri-user-line"></i>
+        <span>Profile</span>
+    </a>
+    <a href="#securitySection" class="bottom-nav-item" data-section="securitySection">
+        <i class="ri-shield-line"></i>
+        <span>Security</span>
+    </a>
+    <a href="#privacySection" class="bottom-nav-item" data-section="privacySection">
+        <i class="ri-lock-line"></i>
+        <span>Privacy</span>
+    </a>
+</nav>
 </body>
 </html>

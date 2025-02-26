@@ -14,6 +14,8 @@
   --space-xl: 32px;
   --font-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --card-bg-rgb: 255, 255, 255;
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,6 +26,7 @@
     --text-secondary: #86868b;
     --card-bg: #1d1d1f;
     --border-color: #424245;
+    --card-bg-rgb: 29, 29, 31;
   }
 }
 
@@ -194,6 +197,7 @@ h1, h2, h3, h4, h5, h6,
 
 .profile-photo-container {
     text-align: center;
+    position: relative;
 }
 
 .profile-info {
@@ -207,6 +211,11 @@ h1, h2, h3, h4, h5, h6,
     object-fit: cover;
     border: 2px solid var(--border-color);
     margin-bottom: var(--space-md);
+    transition: opacity 0.3s ease;
+}
+
+.photo-upload {
+    display: none;
 }
 
 /* Buttons */
@@ -367,6 +376,17 @@ h1, h2, h3, h4, h5, h6,
         gap: var(--space-md);
         text-align: center;
     }
+
+    .profile-photo {
+        width: 96px;
+        height: 96px;
+    }
+
+    #photoUploadBtn {
+        width: auto;
+        min-width: 144px;
+        padding: 8px 16px;
+    }
 }
 
 /* Notification System */
@@ -477,5 +497,437 @@ h1, h2, h3, h4, h5, h6,
     to {
         transform: translateX(100%);
         opacity: 0;
+    }
+}
+
+/* Mobile-First Responsive Design */
+@media (max-width: 768px) {
+    /* Header Adjustments */
+    .header-content {
+        height: auto;
+        padding: var(--space-md) 0;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .primary-nav {
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-md);
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: var(--space-md);
+    }
+
+    /* Main Content Adjustments */
+    .container {
+        padding: 0 var(--space-md);
+    }
+
+    .card {
+        padding: var(--space-md);
+        margin: var(--space-md) 0;
+        border-radius: 8px;
+    }
+
+    /* Profile Section */
+    .profile-section {
+        gap: var(--space-md);
+    }
+
+    .profile-photo {
+        width: 80px;
+        height: 80px;
+    }
+
+    /* Form Elements */
+    .form-input {
+        padding: 10px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+
+    .btn, .btn-secondary, .btn-danger {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+        margin: var(--space-sm) 0;
+    }
+
+    /* Button Groups */
+    .button-group {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    /* Activity List */
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-sm);
+        padding: var(--space-md);
+    }
+
+    /* Apps Grid */
+    .apps-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+
+    /* Notification System */
+    .notification-container {
+        left: var(--space-md);
+        right: var(--space-md);
+        bottom: var(--space-md);
+    }
+
+    .notification {
+        min-width: auto;
+        max-width: none;
+        width: 100%;
+    }
+}
+
+/* Touch-Friendly Targets */
+@media (hover: none) {
+    .btn, .btn-secondary, .btn-danger,
+    .nav-link, .social-btn {
+        min-height: 44px; /* Apple's recommended minimum */
+    }
+
+    .device-item, .activity-item {
+        padding: var(--space-md) var(--space-sm);
+    }
+
+    /* Improved touch targets */
+    .form-input, select {
+        min-height: 44px;
+    }
+}
+
+/* Bottom Navigation for Mobile */
+@media (max-width: 768px) {
+    .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--card-bg);
+        border-top: 1px solid var(--border-color);
+        padding: var(--space-sm);
+        justify-content: space-around;
+        z-index: 1000;
+    }
+
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: var(--space-sm);
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 12px;
+    }
+
+    .bottom-nav-item.active {
+        color: var(--primary-blue);
+    }
+
+    /* Add padding to main content to account for bottom nav */
+    .main-content {
+        padding-bottom: 72px;
+    }
+}
+
+/* Enhanced Mobile Styles */
+@media (max-width: 768px) {
+    /* Improved Header */
+    .header {
+        height: auto;
+        padding: 0;
+    }
+
+    .header-content {
+        padding: var(--space-md);
+        gap: var(--space-md);
+    }
+
+    .nav-links {
+        display: none; /* Hide top navigation on mobile since we have bottom nav */
+    }
+
+    /* Improved Cards */
+    .card {
+        margin: var(--space-md) 0;
+        padding: var(--space-lg);
+        border-radius: 16px;
+    }
+
+    /* Profile Section Improvements */
+    .profile-header {
+        padding: var(--space-md);
+    }
+
+    .profile-photo {
+        width: 96px;
+        height: 96px;
+        margin-bottom: var(--space-sm);
+    }
+
+    /* Form Improvements */
+    .form-input {
+        font-size: 16px;
+        padding: 14px;
+        margin: 4px 0;
+        -webkit-appearance: none; /* Prevent iOS default styling */
+        border-radius: 12px;
+    }
+
+    /* Button Improvements */
+    .btn, .btn-secondary, .btn-danger {
+        padding: 14px 20px;
+        font-size: 16px;
+        border-radius: 12px;
+        width: 100%;
+        margin: var(--space-sm) 0;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Bottom Navigation Improvements */
+    .bottom-nav {
+        padding: var(--space-sm) var(--space-md);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        background: rgba(var(--card-bg-rgb), 0.8);
+        box-shadow: 0 -1px 0 var(--border-color);
+    }
+
+    .bottom-nav-item {
+        position: relative;
+        padding: var(--space-sm);
+        min-width: 64px;
+        font-size: 12px;
+    }
+
+    .bottom-nav-item i {
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+
+    .bottom-nav-item.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 24px;
+        height: 2px;
+        background: var(--primary-blue);
+        border-radius: 2px;
+    }
+
+    /* Main Content Spacing */
+    .main-content {
+        padding-top: var(--space-md);
+        padding-bottom: calc(72px + var(--space-xl)); /* Account for bottom nav */
+    }
+
+    /* Activity and Device Lists */
+    .activity-item, .device-item {
+        padding: var(--space-lg);
+        border-radius: 12px;
+        background: var(--secondary-bg);
+        margin-bottom: var(--space-sm);
+        border: 1px solid var(--border-color);
+    }
+
+    /* Notification Improvements */
+    .notification {
+        margin: 0 var(--space-md);
+        border-radius: 12px;
+    }
+
+    /* Grid Improvements */
+    .apps-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+
+    .app-card {
+        border-radius: 12px;
+        padding: var(--space-lg);
+    }
+}
+
+/* Tablet-specific adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container {
+        padding: 0 var(--space-xl);
+    }
+
+    .apps-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Safe Area Support for Modern iPhones */
+@supports (padding: max(0px)) {
+    .bottom-nav {
+        padding-bottom: max(var(--space-sm), var(--safe-area-inset-bottom));
+    }
+    
+    .main-content {
+        padding-bottom: max(72px + var(--space-xl), calc(72px + var(--safe-area-inset-bottom)));
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) {
+    .btn:active, .btn-secondary:active, .btn-danger:active {
+        opacity: 0.7;
+        transform: scale(0.98);
+    }
+
+    .bottom-nav-item:active {
+        opacity: 0.7;
+    }
+
+    /* Prevent text selection on interactive elements */
+    .btn, .nav-link, .bottom-nav-item {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+}
+
+/* New Styles for Enhanced Settings */
+.linked-accounts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.linked-account-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.account-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.account-info i {
+    font-size: 24px;
+    color: var(--text-secondary);
+}
+
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-item:last-child {
+    border-bottom: none;
+}
+
+/* Toggle Switch */
+.toggle {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--primary-blue);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: var(--space-md);
+}
+
+/* Icon Styles */
+.card h2 i {
+    margin-right: var(--space-sm);
+    vertical-align: middle;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .linked-account-item {
+        flex-direction: column;
+        gap: var(--space-md);
+        text-align: center;
+    }
+
+    .account-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .settings-item {
+        flex-direction: column;
+        gap: var(--space-md);
+        text-align: center;
+    }
+
+    .settings-item select {
+        width: 100%;
     }
 }
