@@ -7,6 +7,9 @@
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://www.gstatic.com">
     <title>Nova Account</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -567,6 +570,57 @@ async function linkGitHub() {
     }
 }
 
+    </script>
+    <!-- Add these performance optimization scripts -->
+    <script>
+        // Optimize page load performance
+        document.addEventListener('DOMContentLoaded', () => {
+            // Defer non-critical scripts
+            setTimeout(() => {
+                // Load non-critical scripts here
+            }, 1000);
+
+            // Use Intersection Observer for lazy loading
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { rootMargin: '50px' });
+
+            // Observe all cards
+            document.querySelectorAll('.card').forEach(card => {
+                observer.observe(card);
+            });
+        });
+
+        // Optimize mobile touch events
+        let touchStartY = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        // Debounce function for performance
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Optimize scroll performance
+        const onScroll = debounce(() => {
+            // Your scroll handling code
+        }, 16);
+
+        window.addEventListener('scroll', onScroll, { passive: true });
     </script>
 </head>
 <body>

@@ -16,6 +16,8 @@
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --card-bg-rgb: 255, 255, 255;
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --border-color-rgb: 210, 210, 215;
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,6 +29,8 @@
     --card-bg: #1d1d1f;
     --border-color: #424245;
     --card-bg-rgb: 29, 29, 31;
+    --border-color-rgb: 66, 66, 69;
+    --card-shadow: 0 2px 8px rgba(0,0,0,0.2);
   }
 }
 
@@ -929,5 +933,161 @@ input:checked + .toggle-slider:before {
 
     .settings-item select {
         width: 100%;
+    }
+}
+
+/* Enhanced Mobile Performance & UI */
+@media (max-width: 768px) {
+    /* Optimize transitions */
+    * {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    /* Smoother scrolling */
+    .main-content {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        overscroll-behavior-y: contain;
+    }
+
+    /* Improved card design */
+    .card {
+        margin: var(--space-sm) 0;
+        padding: var(--space-lg);
+        border-radius: 16px;
+        background: linear-gradient(
+            to bottom,
+            rgba(var(--card-bg-rgb), 0.8),
+            var(--card-bg)
+        );
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(var(--border-color-rgb), 0.2);
+        transition: transform 0.2s ease;
+    }
+
+    .card:active {
+        transform: scale(0.98);
+    }
+
+    /* Better form controls */
+    .form-input, select, button {
+        height: 48px;
+        font-size: 16px;
+        border-radius: 12px;
+    }
+
+    /* Improved bottom navigation */
+    .bottom-nav {
+        height: 64px;
+        background: linear-gradient(
+            to top,
+            var(--card-bg),
+            rgba(var(--card-bg-rgb), 0.8)
+        );
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(var(--border-color-rgb), 0.2);
+    }
+
+    .bottom-nav-item {
+        padding: var(--space-sm);
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+    }
+
+    .bottom-nav-item.active {
+        opacity: 1;
+    }
+
+    .bottom-nav-item i {
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+
+    /* Enhanced toggles */
+    .toggle {
+        transform: scale(0.9);
+        touch-action: manipulation;
+    }
+
+    /* Better spacing for linked accounts */
+    .linked-account-item {
+        padding: var(--space-lg);
+        background: var(--secondary-bg);
+        border-radius: 12px;
+        margin-bottom: var(--space-sm);
+    }
+
+    /* Improved settings items */
+    .settings-item {
+        padding: var(--space-md) var(--space-lg);
+        background: var(--secondary-bg);
+        border-radius: 12px;
+        margin-bottom: var(--space-sm);
+        border: 1px solid rgba(var(--border-color-rgb), 0.2);
+    }
+
+    /* Profile photo improvements */
+    .profile-photo-container {
+        position: relative;
+        width: 96px;
+        height: 96px;
+        margin: 0 auto;
+    }
+
+    .profile-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-width: 3px;
+    }
+
+    /* Button improvements */
+    .btn, .btn-secondary {
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    /* Loading state improvements */
+    .loading-spinner {
+        transform: scale(0.8);
+    }
+
+    /* Status badge improvements */
+    .status-badge {
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+}
+
+/* Performance optimizations */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Memory optimizations */
+@media (max-width: 768px) {
+    .animate-in {
+        will-change: transform, opacity;
+    }
+
+    .card {
+        will-change: transform;
+    }
+
+    img {
+        content-visibility: auto;
     }
 }
