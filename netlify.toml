@@ -30,4 +30,3 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self' *.firebaseio.com *.firebase.com *.googleapis.com *.gstatic.com *.cloudfront.net; img-src 'self' data: *.cloudfront.net; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.gstatic.com; script-src 'self' 'unsafe-inline' *.firebaseio.com *.firebase.com *.googleapis.com;"
