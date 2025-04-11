@@ -651,72 +651,282 @@ h1, h2, h3, h4, h5, h6,
 
 /* Enhanced Mobile Styles */
 @media (max-width: 768px) {
-    /* Improved Header */
     .header {
         height: auto;
-        padding: 0;
+        padding: var(--space-sm) 0;
     }
 
     .header-content {
         padding: var(--space-md);
-        gap: var(--space-md);
+    }
+
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: var(--space-lg);
+    }
+
+    .profile-photo-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin-bottom: var(--space-lg);
     }
 
     .nav-links {
         display: none; /* Hide top navigation on mobile since we have bottom nav */
+
+    .profile-photo {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--primary-blue);
+        transition: opacity 0.3s ease;
     }
 
-    /* Improved Cards */
+    #photoUploadBtn {
+        position: absolute;
+        bottom: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        padding: 8px 16px;
+        font-size: 14px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+    }
+
+    #photoUploadBtn:active {
+        transform: translateX(-50%) scale(0.95);
+    }
+
+    /* Enhanced Card Styles */
     .card {
         margin: var(--space-md) 0;
         padding: var(--space-lg);
         border-radius: 16px;
-    }
-
-    /* Profile Section Improvements */
-    .profile-header {
-        padding: var(--space-md);
-    }
-
-    .profile-photo {
-        width: 96px;
-        height: 96px;
-        margin-bottom: var(--space-sm);
-    }
-
-    /* Form Improvements */
-    .form-input {
-        font-size: 16px;
-        padding: 14px;
-        margin: 4px 0;
-        -webkit-appearance: none; /* Prevent iOS default styling */
-        border-radius: 12px;
-    }
-
-    /* Button Improvements */
-    .btn, .btn-secondary, .btn-danger {
-        padding: 14px 20px;
-        font-size: 16px;
-        border-radius: 12px;
-        width: 100%;
-        margin: var(--space-sm) 0;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    /* Bottom Navigation Improvements */
-    .bottom-nav {
-        padding: var(--space-sm) var(--space-md);
+        background: linear-gradient(
+            to bottom,
+            rgba(var(--card-bg-rgb), 0.8),
+            var(--card-bg)
+        );
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
-        background: rgba(var(--card-bg-rgb), 0.8);
-        box-shadow: 0 -1px 0 var(--border-color);
+        transition: transform 0.2s ease;
+    }
+
+    .card:active {
+        transform: scale(0.98);
+    }
+
+    /* Link Account Buttons */
+    .linked-account-item {
+        padding: var(--space-lg);
+        border-radius: 12px;
+        background: var(--secondary-bg);
+        margin-bottom: var(--space-md);
+        transition: transform 0.2s ease;
+    }
+
+    .linked-account-item:active {
+        transform: scale(0.98);
+    }
+
+    .social-btn {
+        width: 100%;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-md);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        font-family: var(--font-heading);
+        font-size: 15px;
+        font-weight: 500;
+        transition: transform 0.2s ease;
+    }
+
+    .social-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(
+            to top,
+            rgba(var(--card-bg-rgb), 0.95),
+            rgba(var(--card-bg-rgb), 0.8)
+        );
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(var(--border-color-rgb), 0.2);
+        padding: 12px var(--space-md);
+        padding-bottom: calc(12px + var(--safe-area-inset-bottom));
+        display: flex;
+        justify-content: space-around;
+        z-index: 1000;
     }
 
     .bottom-nav-item {
-        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
         padding: var(--space-sm);
-        min-width: 64px;
+        color: var(--text-secondary);
+        transition: color 0.2s ease;
+    }
+
+    .bottom-nav-item i {
+        font-size: 24px;
+    }
+
+    .bottom-nav-item span {
         font-size: 12px;
+        font-weight: 500;
+    }
+
+    .bottom-nav-item.active {
+        color: var(--primary-blue);
+    }
+
+    /* Form Elements */
+    .form-input {
+        height: 48px;
+        padding: 0 var(--space-md);
+        font-size: 16px;
+        border-radius: 12px;
+        transition: transform 0.2s ease;
+    }
+
+    .form-input:focus {
+        transform: scale(0.98);
+    }
+
+    /* Buttons */
+    .btn, .btn-secondary, .btn-danger {
+        height: 48px;
+        border-radius: 24px;
+        font-size: 16px;
+        font-weight: 600;
+        transition: transform 0.2s ease;
+    }
+
+    .btn:active, .btn-secondary:active, .btn-danger:active {
+        transform: scale(0.95);
+    }
+
+    /* Toggle Switches */
+    .toggle {
+        transform: scale(1.1);
+        margin: var(--space-sm) 0;
+    }
+
+    .toggle-slider {
+        transition: background-color 0.3s ease;
+    }
+
+    .toggle-slider:before {
+        transition: transform 0.3s ease;
+    }
+
+    /* Loading States */
+    .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(var(--card-bg-rgb), 0.8);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid transparent;
+        border-top-color: var(--primary-blue);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+}
+
+/* Enhanced Mobile Performance & UI */
+@media (max-width: 768px) {
+    /* Optimize transitions */
+    * {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    /* Smoother scrolling */
+    .main-content {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        overscroll-behavior-y: contain;
+    }
+
+    /* Improved card design */
+    .card {
+        margin: var(--space-sm) 0;
+        padding: var(--space-lg);
+        border-radius: 16px;
+        background: linear-gradient(
+            to bottom,
+            rgba(var(--card-bg-rgb), 0.8),
+            var(--card-bg)
+        );
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(var(--border-color-rgb), 0.2);
+        transition: transform 0.2s ease;
+    }
+
+    .card:active {
+        transform: scale(0.98);
+    }
+
+    /* Better form controls */
+    .form-input, select, button {
+        height: 48px;
+        font-size: 16px;
+        border-radius: 12px;
+    }
+
+    /* Improved bottom navigation */
+    .bottom-nav {
+        height: 64px;
+        background: linear-gradient(
+            to top,
+            var(--card-bg),
+            rgba(var(--card-bg-rgb), 0.8)
+        );
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(var(--border-color-rgb), 0.2);
+    }
+
+    .bottom-nav-item {
+        padding: var(--space-sm);
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+    }
+
+    .bottom-nav-item.active {
+        opacity: 1;
     }
 
     .bottom-nav-item i {
@@ -724,49 +934,861 @@ h1, h2, h3, h4, h5, h6,
         margin-bottom: 4px;
     }
 
-    .bottom-nav-item.active::after {
-        content: '';
+    /* Enhanced toggles */
+    .toggle {
+        transform: scale(0.9);
+        touch-action: manipulation;
+    }
+
+    /* Better spacing for linked accounts */
+    .linked-account-item {
+        padding: var(--space-lg);
+        background: var(--secondary-bg);
+        border-radius: 12px;
+        margin-bottom: var(--space-sm);
+    }
+
+    /* Improved settings items */
+    .settings-item {
+        padding: var(--space-md) var(--space-lg);
+        background: var(--secondary-bg);
+        border-radius: 12px;
+        margin-bottom: var(--space-sm);
+        border: 1px solid rgba(var(--border-color-rgb), 0.2);
+    }
+
+    /* Profile photo improvements */
+    .profile-photo-container {
+        position: relative;
+        width: 96px;
+        height: 96px;
+        margin: 0 auto;
+    }
+
+    .profile-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-width: 3px;
+    }
+
+    /* Button improvements */
+    .btn, .btn-secondary {
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    /* Loading state improvements */
+    .loading-spinner {
+        transform: scale(0.8);
+    }
+
+    /* Status badge improvements */
+    .status-badge {
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+}
+
+/* Enhanced Mobile Styles */
+@media (max-width: 768px) {
+    .header {
+        height: auto;
+        padding: var(--space-sm) 0;
+    }
+
+    .header-content {
+        padding: var(--space-md);
+    }
+
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: var(--space-lg);
+    }
+
+    .profile-photo-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin-bottom: var(--space-lg);
+    }
+
+    .profile-photo {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--primary-blue);
+        transition: opacity 0.3s ease;
+    }
+
+    #photoUploadBtn {
         position: absolute;
-        bottom: 0;
+        bottom: -12px;
         left: 50%;
         transform: translateX(-50%);
-        width: 24px;
-        height: 2px;
-        background: var(--primary-blue);
-        border-radius: 2px;
+        white-space: nowrap;
+        padding: 8px 16px;
+        font-size: 14px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
     }
 
-    /* Main Content Spacing */
-    .main-content {
-        padding-top: var(--space-md);
-        padding-bottom: calc(72px + var(--space-xl)); /* Account for bottom nav */
+    #photoUploadBtn:active {
+        transform: translateX(-50%) scale(0.95);
     }
 
-    /* Activity and Device Lists */
-    .activity-item, .device-item {
+    /* Enhanced Card Styles */
+    .card {
+        margin: var (--space-md) 0;
+        padding: var(--space-lg);
+        border-radius: 16px;
+        background: linear-gradient(
+            to bottom,
+            rgba(var(--card-bg-rgb), 0.8),
+            var(--card-bg)
+        );
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: transform 0.2s ease;
+    }
+
+    .card:active {
+        transform: scale(0.98);
+    }
+
+    /* Link Account Buttons */
+    .linked-account-item {
         padding: var(--space-lg);
         border-radius: 12px;
         background: var(--secondary-bg);
-        margin-bottom: var(--space-sm);
-        border: 1px solid var(--border-color);
+        margin-bottom: var(--space-md);
+        transition: transform 0.2s ease;
     }
 
-    /* Notification Improvements */
-    .notification {
-        margin: 0 var(--space-md);
-        border-radius: 12px;
+    .linked-account-item:active {
+        transform: scale(0.98);
     }
 
-    /* Grid Improvements */
-    .apps-grid {
-        grid-template-columns: 1fr;
+    .social-btn {
+        width: 100%;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         gap: var(--space-md);
+        background: var (--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        font-family: var(--font-heading);
+        font-size: 15px;
+        font-weight: 500;
+        transition: transform 0.2s ease;
     }
 
-    .app-card {
-        border-radius: 12px;
-        padding: var(--space-lg);
+    .social-btn:active {
+        transform: scale(0.95);
     }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(
+            to top,
+            rgba(var(--card-bg-rgb), 0.95),
+            rgba(var(--card-bg-rgb), 0.8)
+        );
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(var(--border-color-rgb), 0.2);
+        padding: 12px var(--space-md);
+        padding-bottom: calc(12px + var(--safe-area-inset-bottom));
+        display: flex;
+        justify-content: space-around;
+        z-index: 1000;
+    }
+
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: var(--space-sm);
+        color: var(--text-secondary);
+        transition: color 0.2s ease;
+    }
+
+    .bottom-nav-item i {
+        font-size: 24px;
+    }
+
+    .bottom-nav-item span {
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .bottom-nav-item.active {
+        color: var(--primary-blue);
+    }
+
+    /* Form Elements */
+    .form-input {
+        height: 48px;
+        padding: 0 var(--space-md);
+        font-size: 16px;
+        border-radius: 12px;
+        transition: transform 0.2s ease;
+    }
+
+    .form-input:focus {
+        transform: scale(0.98);
+    }
+
+    /* Buttons */
+    .btn, .btn-secondary, .btn-danger {
+        height: 48px;
+        border-radius: 24px;
+        font-size: 16px;
+        font-weight: 600;
+        transition: transform 0.2s ease;
+    }
+
+    .btn:active, .btn-secondary:active, .btn-danger:active {
+        transform: scale(0.95);
+    }
+
+    /* Toggle Switches */
+    .toggle {
+        transform: scale(1.1);
+        margin: var(--space-sm) 0;
+    }
+
+    .toggle-slider {
+        transition: background-color 0.3s ease;
+    }
+
+    .toggle-slider:before {
+        transition: transform 0.3s ease;
+    }
+
+    /* Loading States */
+    .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(var(--card-bg-rgb), 0.8);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid transparent;
+        border-top-color: var(--primary-blue);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+}
+
+/* Enhanced Mobile Performance & UI */
+@media (max-width: 768px) {
+    /* Optimize transitions */
+    * {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    /* Smoother scrolling */
+    .main-content {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        overscroll-behavior-y: contain;
+    }
+
+    /* Improved card design */
+    .card {
+        margin: var(--space-sm) 0;
+        padding: var(--space-lg);
+        border-radius: 16px;
+        background: linear-gradient(
+            to bottom,
+            rgba(var(--card-bg-rgb), 0.8),
+            var(--card-bg)
+        );
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(var(--border-color-rgb), 0.2);
+        transition: transform 0.2s ease;
+    }
+
+    .card:active {
+        transform: scale(0.98);
+    }
+
+    /* Better form controls */
+    .form-input, select, button {
+        height: 48px;
+        font-size: 16px;
+        border-radius: 12px;
+    }
+
+    /* Improved bottom navigation */
+    .bottom-nav {
+        height: 64px;
+        background: linear-gradient(
+            to top,
+            var(--card-bg),
+            rgba(var(--card-bg-rgb), 0.8)
+        );
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(var(--border-color-rgb), 0.2);
+    }
+
+    .bottom-nav-item {
+        padding: var(--space-sm);
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+    }
+
+    .bottom-nav-item.active {
+        opacity: 1;
+    }
+
+    .bottom-nav-item i {
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+
+    /* Enhanced toggles */
+    .toggle {
+        transform: scale(0.9);
+        touch-action: manipulation;
+    }
+
+    /* Better spacing for linked accounts */
+    .linked-account-item {
+        padding: var(--space-lg);
+        background: var(--secondary-bg);
+        border-radius: 12px;
+        margin-bottom: var(--space-sm);
+    }
+
+    /* Improved settings items */
+    .settings-item {
+        padding: var(--space-md) var(--space-lg);
+        background: var(--secondary-bg);
+        border-radius: 12px;
+        margin-bottom: var(--space-sm);
+        border: 1px solid rgba(var(--border-color-rgb), 0.2);
+    }
+
+    /* Profile photo improvements */
+    .profile-photo-container {
+        position: relative;
+        width: 96px;
+        height: 96px;
+        margin: 0 auto;
+    }
+
+    .profile-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-width: 3px;
+    }
+
+    /* Button improvements */
+    .btn, .btn-secondary {
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    /* Loading state improvements */
+    .loading-spinner {
+        transform: scale(0.8);
+    }
+
+    /* Status badge improvements */
+    .status-badge {
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+}
+
+/* Enhanced Mobile Styles */
+@media (max-width: 768px) {
+    .header {
+        height: auto;
+        padding: var(--space-sm) 0;
+    }
+
+    .header-content {
+        padding: var(--space-md);
+    }
+
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: var(--space-lg);
+    }
+
+    .profile-photo-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin-bottom: var(--space-lg);
+    }
+
+    .profile-photo {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--primary-blue);
+        transition: opacity 0.3s ease;
+    }
+
+    #photoUploadBtn {
+        position: absolute;
+        bottom: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        padding: 8px 16px;
+        font-size: 14px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+    }
+
+    #photoUploadBtn:active {
+        transform: translateX(-50%) scale(0.95);
+    }
+
+    /* Enhanced Card Styles */
+    .card {
+        margin: var(--space-md) 0;
+        padding: var(--space-lg);
+        border-radius: 16px;
+        background: linear-gradient(
+            to bottom,
+            rgba(var(--card-bg-rgb), 0.8),
+            var(--card-bg)
+        );
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: transform 0.2s ease;
+    }
+
+    .card:active {
+        transform: scale(0.98);
+    }
+
+    /* Link Account Buttons */
+    .linked-account-item {
+        padding: var(--space-lg);
+        border-radius: 12px;
+        background: var(--secondary-bg);
+        margin-bottom: var(--space-md);
+        transition: transform 0.2s ease;
+    }
+
+    .linked-account-item:active {
+        transform: scale(0.98);
+    }
+
+    .social-btn {
+        width: 100%;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-md);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        font-family: var(--font-heading);
+        font-size: 15px;
+        font-weight: 500;
+        transition: transform 0.2s ease;
+    }
+
+    .social-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(
+            to top,
+            rgba(var(--card-bg-rgb), 0.95),
+            rgba(var(--card-bg-rgb), 0.8)
+        );
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(var(--border-color-rgb), 0.2);
+        padding: 12px var(--space-md);
+        padding-bottom: calc(12px + var(--safe-area-inset-bottom));
+        display: flex;
+        justify-content: space-around;
+        z-index: 1000;
+    }
+
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: var(--space-sm);
+        color: var(--text-secondary);
+        transition: color 0.2s ease;
+    }
+
+    .bottom-nav-item i {
+        font-size: 24px;
+    }
+
+    .bottom-nav-item span {
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .bottom-nav-item.active {
+        color: var(--primary-blue);
+    }
+
+    /* Form Elements */
+    .form-input {
+        height: 48px;
+        padding: 0 var(--space-md);
+        font-size: 16px;
+        border-radius: 12px;
+        transition: transform 0.2s ease;
+    }
+
+    .form-input:focus {
+        transform: scale(0.98);
+    }
+
+    /* Buttons */
+    .btn, .btn-secondary, .btn-danger {
+        height: 48px;
+        border-radius: 24px;
+        font-size: 16px;
+        font-weight: 600;
+        transition: transform 0.2s ease;
+    }
+
+    .btn:active, .btn-secondary:active, .btn-danger:active {
+        transform: scale(0.95);
+    }
+
+    /* Toggle Switches */
+    .toggle {
+        transform: scale(1.1);
+        margin: var(--space-sm) 0;
+    }
+
+    .toggle-slider {
+        transition: background-color 0.3s ease;
+    }
+
+    .toggle-slider:before {
+        transition: transform 0.3s ease;
+    }
+
+    /* Loading States */
+    .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(var(--card-bg-rgb), 0.8);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid transparent;
+        border-top-color: var(--primary-blue);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+}
+
+/* Enhanced Mobile Performance & UI */
+@media (max-width: 768px) {
+    /* Optimize transitions */
+    * {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    /* Smoother scrolling */
+    .main-content {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+        overscroll-behavior-y: contain;
+    }
+
+    /* Improved card design */
+    .card {
+        margin: var(--space-sm) 0;
+        padding: var(--space-lg);
+        border-radius: 16px;
+        background: linear-gradient(
+            to bottom,
+            rgba(var(--card-bg-rgb), 0.8),
+            var(--card-bg)
+        );
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(var(--border-color-rgb), 0.2);
+        transition: transform 0.2s ease;
+    }
+
+    .card:active {
+        transform: scale(0.98);
+    }
+
+    /* Better form controls */
+    .form-input, select, button {
+        height: 48px;
+        font-size: 16px;
+        border-radius: 12px;
+    }
+
+    /* Improved bottom navigation */
+    .bottom-nav {
+        height: 64px;
+        background: linear-gradient(
+            to top,
+            var(--card-bg),
+            rgba(var(--card-bg-rgb), 0.8)
+        );
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(var(--border-color-rgb), 0.2);
+    }
+
+    .bottom-nav-item {
+        padding: var(--space-sm);
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+    }
+
+    .bottom-nav-item.active {
+        opacity: 1;
+    }
+
+    .bottom-nav-item i {
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+
+    /* Enhanced toggles */
+    .toggle {
+        transform: scale(0.9);
+        touch-action: manipulation;
+    }
+
+    /* Better spacing for linked accounts */
+    .linked-account-item {
+        padding: var(--space-lg);
+        background: var(--secondary-bg);
+        border-radius: 12px;
+        margin-bottom: var(--space-sm);
+    }
+
+    /* Improved settings items */
+    .settings-item {
+        padding: var(--space-md) var(--space-lg);
+        background: var(--secondary-bg);
+        border-radius: 12px;
+        margin-bottom: var(--space-sm);
+        border: 1px solid rgba(var(--border-color-rgb), 0.2);
+    }
+
+    /* Profile photo improvements */
+    .profile-photo-container {
+        position: relative;
+        width: 96px;
+        height: 96px;
+        margin: 0 auto;
+    }
+
+    .profile-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-width: 3px;
+    }
+
+    /* Button improvements */
+    .btn, .btn-secondary {
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    /* Loading state improvements */
+    .loading-spinner {
+        transform: scale(0.8);
+    }
+
+    /* Status badge improvements */
+    .status-badge {
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+}
+
+/* Performance optimizations */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Memory optimizations */
+@media (max-width: 768px) {
+    .animate-in {
+        will-change: transform, opacity;
+    }
+
+    .card {
+        will-change: transform;
+    }
+
+    img {
+        content-visibility: auto;
+    }
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+}
+
+.status-badge:active {
+    transform: scale(0.95);
+}
+
+/* Animations */
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) {
+    .btn, .btn-secondary, .btn-danger,
+    .social-btn, .bottom-nav-item {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .card, .linked-account-item {
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+    }
+}
+
+/* iOS Safe Areas */
+@supports (padding: max(0px)) {
+    .bottom-nav {
+        padding-bottom: max(12px, var(--safe-area-inset-bottom));
+    }
+
+    .main-content {
+        padding-bottom: calc(80px + max(20px, var(--safe-area-inset-bottom)));
+    }
+}
+
+/* Re-authentication Modal */
+.reauth-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(var(--card-bg-rgb), 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.reauth-content {
+    background: var(--card-bg);
+    padding: var(--space-xl);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.reauth-content h2 {
+    margin-bottom: var(--space-md);
+}
+
+.reauth-content .button-group {
+    margin-top: var(--space-lg);
+    display: flex;
+    gap: var(--space-md);
 }
 
 /* Tablet-specific adjustments */
@@ -936,158 +1958,371 @@ input:checked + .toggle-slider:before {
     }
 }
 
-/* Enhanced Mobile Performance & UI */
+/* Enhanced linked account item styles */
+.linked-account-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-lg);
+    background: var(--secondary-bg);
+    border-radius: 12px;
+    margin-bottom: var(--space-md);
+    transition: all 0.2s ease;
+}
+
+.linked-account-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
+}
+
+.linked-account-item .account-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.linked-account-item i {
+    font-size: 24px;
+    color: var(--text-primary);
+}
+
+/* Enhanced photo upload button styles */
+#photoUploadBtn {
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    padding: 8px 16px;
+    font-size: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.2s ease;
+}
+
+#photoUploadBtn:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Enhanced toggle switch styles */
+.toggle {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--primary-blue);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    /* Optimize transitions */
-    * {
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
+    .linked-account-item {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-md);
     }
 
-    /* Smoother scrolling */
-    .main-content {
-        -webkit-overflow-scrolling: touch;
-        scroll-behavior: smooth;
-        overscroll-behavior-y: contain;
+    .linked-account-item .account-info {
+        flex-direction: column;
+        text-align: center;
     }
 
-    /* Improved card design */
-    .card {
-        margin: var(--space-sm) 0;
-        padding: var(--space-lg);
-        border-radius: 16px;
-        background: linear-gradient(
-            to bottom,
-            rgba(var(--card-bg-rgb), 0.8),
-            var(--card-bg)
-        );
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(var(--border-color-rgb), 0.2);
-        transition: transform 0.2s ease;
+    .linked-account-item .btn-secondary {
+        width: 100%;
     }
 
-    .card:active {
-        transform: scale(0.98);
+    #photoUploadBtn {
+        position: static;
+        transform: none;
+        width: 100%;
+        margin-top: var(--space-md);
     }
 
-    /* Better form controls */
-    .form-input, select, button {
-        height: 48px;
-        font-size: 16px;
-        border-radius: 12px;
+    #photoUploadBtn:hover {
+        transform: translateY(-2px);
     }
-
-    /* Improved bottom navigation */
-    .bottom-nav {
-        height: 64px;
-        background: linear-gradient(
-            to top,
-            var(--card-bg),
-            rgba(var(--card-bg-rgb), 0.8)
-        );
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-top: 1px solid rgba(var(--border-color-rgb), 0.2);
-    }
-
-    .bottom-nav-item {
-        padding: var(--space-sm);
-        opacity: 0.7;
-        transition: opacity 0.2s ease;
-    }
-
-    .bottom-nav-item.active {
-        opacity: 1;
-    }
-
-    .bottom-nav-item i {
-        font-size: 24px;
-        margin-bottom: 4px;
-    }
-
-    /* Enhanced toggles */
+    
     .toggle {
         transform: scale(0.9);
-        touch-action: manipulation;
-    }
-
-    /* Better spacing for linked accounts */
-    .linked-account-item {
-        padding: var(--space-lg);
-        background: var(--secondary-bg);
-        border-radius: 12px;
-        margin-bottom: var(--space-sm);
-    }
-
-    /* Improved settings items */
-    .settings-item {
-        padding: var(--space-md) var(--space-lg);
-        background: var(--secondary-bg);
-        border-radius: 12px;
-        margin-bottom: var(--space-sm);
-        border: 1px solid rgba(var(--border-color-rgb), 0.2);
-    }
-
-    /* Profile photo improvements */
-    .profile-photo-container {
-        position: relative;
-        width: 96px;
-        height: 96px;
-        margin: 0 auto;
-    }
-
-    .profile-photo {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-width: 3px;
-    }
-
-    /* Button improvements */
-    .btn, .btn-secondary {
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        letter-spacing: 0.3px;
-    }
-
-    /* Loading state improvements */
-    .loading-spinner {
-        transform: scale(0.8);
-    }
-
-    /* Status badge improvements */
-    .status-badge {
-        padding: 6px 12px;
-        font-size: 13px;
-        font-weight: 600;
     }
 }
 
-/* Performance optimizations */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
+/* FAQ Styles */
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
 }
 
-/* Memory optimizations */
+.faq-item {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.faq-item summary {
+    padding: var(--space-md);
+    cursor: pointer;
+    font-weight: 500;
+    user-select: none;
+}
+
+.faq-item summary:hover {
+    background: var(--secondary-bg);
+}
+
+.faq-item[open] summary {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.faq-item p {
+    padding: var(--space-md);
+    color: var(--text-secondary);
+}
+
+/* Mobile Nav Updates */
 @media (max-width: 768px) {
-    .animate-in {
-        will-change: transform, opacity;
-    }
-
-    .card {
-        will-change: transform;
-    }
-
-    img {
-        content-visibility: auto;
+    .bottom-nav {
+        grid-template-columns: repeat(6, 1fr);
     }
 }
+
+/* Enhanced Desktop & Shared Styles */
+.card {
+    background: linear-gradient(
+        to bottom,
+        rgba(var(--card-bg-rgb), 0.8),
+        var(--card-bg)
+    );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(var(--border-color-rgb), 0.2);
+    border-radius: 16px;
+    padding: var(--space-xl);
+    margin: var(--space-md) 0;
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-lg);
+    background: var(--secondary-bg);
+    border-radius: 12px;
+    margin-bottom: var(--space-sm);
+    border: 1px solid rgba(var(--border-color-rgb), 0.2);
+    transition: background-color 0.2s ease;
+}
+
+.settings-item:hover {
+    background: rgba(var(--card-bg-rgb), 0.5);
+}
+
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.btn, .btn-secondary, .btn-danger {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-xl);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border-radius: 24px;
+    transition: all 0.2s ease;
+}
+
+.btn:hover, .btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
+}
+
+.profile-photo-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-blue);
+    transition: opacity 0.3s ease;
+}
+
+#photoUploadBtn {
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    padding: 8px 16px;
+    font-size: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.2s ease;
+}
+
+#photoUploadBtn:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-md);
+}
+
+.app-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: var(--space-lg);
+    transition: all 0.2s ease;
+}
+
+.app-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow);
+}
+
+.activity-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md);
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.activity-item:hover {
+    background: var(--secondary-bg);
+}
+
+.toggle {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+    transform: scale(1);
+    transition: transform 0.2s ease;
+}
+
+.toggle:hover {
+    transform: scale(1.05);
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--primary-blue);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+/* Update form inputs for desktop */
+.form-input {
+    height: 48px;
+    padding: 0 var(--space-md);
+    font-size: 16px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+}
+
+.form-input:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.1);
+    transform: scale(0.99);
+}
+
+/* Card title icons */
+.card h2 i {
+    margin-right: var(--space-sm);
+    vertical-align: middle;
+    opacity: 0.9;
+}}

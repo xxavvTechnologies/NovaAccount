@@ -1,0 +1,33 @@
+[build]
+  publish = "/"
+  command = "# no build command"
+
+# Pretty URLs - remove .html extension
+[[redirects]]
+  from = "/index"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/index.html"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/:page"
+  to = "/:page.html"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self' *.firebaseio.com *.firebase.com *.googleapis.com *.gstatic.com *.cloudfront.net; img-src 'self' data: *.cloudfront.net; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.gstatic.com; script-src 'self' 'unsafe-inline' *.firebaseio.com *.firebase.com *.googleapis.com;"

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /signup
+Disallow: /delete-confirmation
+
+Sitemap: https://account.novasuite.one/sitemap.xml

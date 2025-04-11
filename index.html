@@ -2,15 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, viewport-fit=cover, maximum-scale=1">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Manage your Nova ID settings, security, and privacy preferences. Access all Nova services with one secure account.">
+    <meta name="keywords" content="Nova account, Nova ID, account settings, security, privacy, user profile">
+    <meta name="author" content="xxavvTechnologies">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://account.novasuite.one/">
+    <meta property="og:title" content="Nova Account - Manage Your Account">
+    <meta property="og:description" content="Manage your Nova account settings, security, and privacy preferences. Access all Nova services with one secure account.">
+    <meta property="og:image" content="https://static.wixstatic.com/media/5f23d5_b77a51c67a3848ada1de22f6e49a5999~mv2.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://account.novasuite.one/">
+    <meta property="twitter:title" content="Nova Account - Manage Your Account">
+    <meta property="twitter:description" content="Manage your Nova ID settings, security, and privacy preferences. Access all Nova services with one secure account.">
+    <meta property="twitter:image" content="https://static.wixstatic.com/media/5f23d5_b77a51c67a3848ada1de22f6e49a5999~mv2.png">
+
+    <!-- Theme Color -->
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    
+    <!-- PWA Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <!-- Performance Optimization -->
     <link rel="dns-prefetch" href="https://www.gstatic.com">
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://www.gstatic.com">
-    <title>Nova Account</title>
+    
+    <title>Nova Account - Manage Your Account</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -217,7 +244,7 @@
         // Auth state listener
         auth.onAuthStateChanged((user) => {
             if (!user) {
-                window.location.href = 'signup.html';
+                window.location.href = 'signup';
                 return;
             }
 
@@ -272,7 +299,7 @@
 
         function logout() {
             auth.signOut().then(() => {
-                window.location.href = 'signup.html';
+                window.location.href = 'signup';
             });
         }
 
@@ -383,14 +410,14 @@
                 case 'profile_update':
                     await auth.currentUser.sendEmailVerification({
                         handleCodeInApp: true,
-                        url: window.location.origin + '/index.html'
+                        url: window.location.origin + '/index'
                     });
                     break;
                 case 'account_deletion':
                     // Send deletion confirmation email
                     await auth.currentUser.sendEmailVerification({
                         handleCodeInApp: true,
-                        url: window.location.origin + '/delete-confirmation.html'
+                        url: window.location.origin + '/delete-confirmation'
                     });
                     break;
             }
@@ -640,6 +667,9 @@ async function linkGitHub() {
                         <a href="#profile" class="nav-link active" data-section="profileSection">Profile</a>
                         <a href="#security" class="nav-link" data-section="securitySection">Security</a>
                         <a href="#privacy" class="nav-link" data-section="privacySection">Privacy</a>
+                        <a href="#apps" class="nav-link" data-section="appsSection">Apps & Services</a>
+                        <a href="#settings" class="nav-link" data-section="settingsSection">Settings</a>
+                        <a href="#help" class="nav-link" data-section="helpSection">Help</a>
                     </div>
                 </nav>
                 <button class="btn" id="logoutBtn" style="display: none;">Sign Out</button>
@@ -653,140 +683,88 @@ async function linkGitHub() {
                     <h1>Welcome, <span id="userName">User</span></h1>
                     
                     <div class="card">
-                        <h2>Profile</h2>
-                        <div style="display: flex; gap: var(--space-xl); align-items: start;">
-                            <div>
+                        <h2><i class="ri-user-line"></i> Profile</h2>
+                        <div class="profile-header">
+                            <div class="profile-photo-container">
                                 <img id="profilePhoto" src="https://d2zcpib8duehag.cloudfront.net/default-avatar.png" 
                                     alt="Profile" class="profile-photo">
                                 <input type="file" id="photoUpload" class="photo-upload" accept="image/*">
-                                <button id="photoUploadBtn" class="btn-secondary" onclick="document.getElementById('photoUpload').click()"
-                                    style="margin-top: var(--space-md)">
+                                <button id="photoUploadBtn" class="btn-secondary">
                                     Change Photo
                                 </button>
                             </div>
-                            <div style="flex-grow: 1;">
-                                <div style="margin-bottom: var(--space-md);">
+                            <div class="profile-info">
+                                <div class="form-group">
                                     <label>Display Name</label>
-                                    <input type="text" id="displayName" class="form-input"
-                                        style="width: 100%; margin-top: 4px;">
-                                    <button class="btn" onclick="updateProfile()" 
-                                        style="margin-top: var(--space-md)">Save Changes</button>
+                                    <input type="text" id="displayName" class="form-input">
                                 </div>
-                                <p>Email: <span id="userEmail"></span></p>
-                                <p>Last login: <span id="lastLogin"></span></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- New sections for profile -->
-                    <div class="card">
-                        <h2>Connected Devices</h2>
-                        <ul id="deviceList" class="device-list">
-                            <li class="text-secondary">Loading devices...</li>
-                        </ul>
-                    </div>
-
-                    <div class="card">
-                        <h2>Login Methods</h2>
-                        <div id="loginMethods" style="display: flex; flex-direction: column; gap: var(--space-md);">
-                        </div>
-                    </div>
-
-                    <div class="card danger-zone">
-                        <h2>Delete Account</h2>
-                        <p class="text-secondary">This action cannot be undone.</p>
-                        <button class="btn-danger" onclick="deleteAccount()"
-                            style="margin-top: var(--space-md)">Delete My Account</button>
-                    </div>
-
-                    <div class="card">
-                        <h2><i class="ri-links-line"></i> Linked Accounts</h2>
-                        <div class="linked-accounts">
-                            <div class="linked-account-item">
-                                <div class="account-info">
-                                    <i class="ri-google-line"></i>
-                                    <div>
-                                        <h3>Google</h3>
-                                        <p class="text-secondary">Link your Google account for easier sign-in</p>
-                                    </div>
+                                <div class="text-secondary">
+                                    <p>Email: <span id="userEmail"></span></p>
+                                    <p>Member since: <span id="memberSince"></span></p>
                                 </div>
-                                <button class="btn-secondary" onclick="linkGoogle()">Link Account</button>
-                            </div>
-                            <div class="linked-account-item">
-                                <div class="account-info">
-                                    <i class="ri-github-line"></i>
-                                    <div>
-                                        <h3>GitHub</h3>
-                                        <p class="text-secondary">Connect your GitHub account</p>
-                                    </div>
-                                </div>
-                                <button class="btn-secondary" onclick="linkGitHub()">Link Account</button>
+                                <button class="btn" onclick="updateProfile()">Save Changes</button>
                             </div>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h2><i class="ri-notification-4-line"></i> Notification Preferences</h2>
+                        <h2><i class="ri-device-line"></i> Active Sessions</h2>
+                        <div id="deviceList" class="device-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="securitySection" class="section-content animate-in" style="display: none;">
+                <div class="profile-section">
+                    <h1>Security Settings</h1>
+                    
+                    <div class="card">
+                        <h2><i class="ri-lock-password-line"></i> Password & Authentication</h2>
                         <div class="settings-list">
                             <div class="settings-item">
                                 <div>
-                                    <h3>Email Notifications</h3>
-                                    <p class="text-secondary">Receive important updates via email</p>
+                                    <h3>Password</h3>
+                                    <p class="text-secondary">Last changed: <span id="passwordLastChanged">Loading...</span></p>
                                 </div>
-                                <label class="toggle">
-                                    <input type="checkbox" id="emailNotifications">
-                                    <span class="toggle-slider"></span>
-                                </label>
+                                <button class="btn-secondary" onclick="changePassword()">Change</button>
                             </div>
                             <div class="settings-item">
                                 <div>
-                                    <h3>Security Alerts</h3>
-                                    <p class="text-secondary">Get notified about account security events</p>
+                                    <h3>Two-Factor Authentication</h3>
+                                    <p class="text-secondary">Add an extra layer of security</p>
                                 </div>
-                                <label class="toggle">
-                                    <input type="checkbox" id="securityAlerts" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
+                                <button class="btn-secondary" onclick="setup2FA()">Setup</button>
                             </div>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h2><i class="ri-global-line"></i> Language & Region</h2>
-                        <div class="form-group">
-                            <label class="form-label">Language</label>
-                            <select class="form-input" id="language">
-                                <option value="en">English</option>
-                                <option value="es">Español</option>
-                                <option value="fr">Français</option>
-                                <option value="de">Deutsch</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Time Zone</label>
-                            <select class="form-input" id="timezone">
-                                <option value="UTC">UTC</option>
-                                <option value="America/New_York">Eastern Time</option>
-                                <option value="America/Los_Angeles">Pacific Time</option>
-                                <option value="Europe/London">London</option>
-                                <option value="Asia/Tokyo">Tokyo</option>
-                            </select>
+                        <h2><i class="ri-shield-check-line"></i> Email Verification</h2>
+                        <div class="settings-item">
+                            <div>
+                                <h3>Status</h3>
+                                <span id="emailVerified" class="status-badge">Checking...</span>
+                            </div>
+                            <button class="btn-secondary" id="resendVerificationBtn">
+                                Resend Verification
+                            </button>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h2><i class="ri-shield-star-line"></i> Privacy Controls</h2>
+                        <h2><i class="ri-history-line"></i> Login Activity</h2>
+                        <div id="loginActivity" class="activity-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="privacySection" class="section-content animate-in" style="display: none;">
+                <div class="profile-section">
+                    <h1>Privacy Settings</h1>
+
+                    <div class="card">
+                        <h2><i class="ri-eye-line"></i> Profile Privacy</h2>
                         <div class="settings-list">
-                            <div class="settings-item">
-                                <div>
-                                    <h3>Activity Status</h3>
-                                    <p class="text-secondary">Show when you're active</p>
-                                </div>
-                                <label class="toggle">
-                                    <input type="checkbox" id="activityStatus" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
                             <div class="settings-item">
                                 <div>
                                     <h3>Profile Visibility</h3>
@@ -798,73 +776,124 @@ async function linkGitHub() {
                                     <option value="friends">Friends Only</option>
                                 </select>
                             </div>
+                            <div class="settings-item">
+                                <div>
+                                    <h3>Activity Status</h3>
+                                    <p class="text-secondary">Show when you're active</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" id="activityStatus" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="ri-apps-line"></i> Connected Apps</h2>
+                        <div id="connectedApps" class="apps-grid"></div>
+                    </div>
+
+                    <div class="card danger-zone">
+                        <h2><i class="ri-delete-bin-line"></i> Delete Account</h2>
+                        <p class="text-secondary">This action is permanent and cannot be undone.</p>
+                        <button class="btn-danger" onclick="deleteAccount()">Delete My Account</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="appsSection" class="section-content animate-in" style="display: none;">
+                <div class="profile-section">
+                    <h1>Apps & Services</h1>
+                    
+                    <div class="card">
+                        <h2><i class="ri-apps-2-line"></i> Connected Applications</h2>
+                        <div id="appsList" class="apps-grid"></div>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="ri-arrow-left-right-line"></i> Data Access</h2>
+                        <div class="settings-list">
+                            <div class="settings-item">
+                                <div>
+                                    <h3>Third-Party Access</h3>
+                                    <p class="text-secondary">Control which services can access your data</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" id="thirdPartyAccess" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Security Section -->
-            <section id="securitySection" class="section-content animate-in" style="display: none;">
+            <!-- Settings Section -->
+            <section id="settingsSection" class="section-content animate-in" style="display: none;">
                 <div class="profile-section">
-                    <h1>Security Settings</h1>
+                    <h1>Settings</h1>
                     
                     <div class="card">
-                        <h2>Email Verification</h2>
-                        <p>Status: <span id="emailVerified" class="status-badge">Checking...</span></p>
-                        <button class="btn-secondary" id="resendVerificationBtn" style="display: none;">
-                            Resend Verification Email
-                        </button>
-                    </div>
-
-                    <div class="card">
-                        <h2>Password</h2>
-                        <p>Last changed: <span id="passwordLastChanged">Loading...</span></p>
-                        <div class="button-group">
-                            <button class="btn" onclick="changePassword()">Change Password</button>
+                        <h2><i class="ri-palette-line"></i> Appearance</h2>
+                        <div class="settings-list">
+                            <div class="settings-item">
+                                <div>
+                                    <h3>Theme</h3>
+                                    <p class="text-secondary">Choose your preferred theme</p>
+                                </div>
+                                <select class="form-input" id="themeSelect">
+                                    <option value="system">System Default</option>
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h2>Recent Activity</h2>
-                        <div id="loginHistory" class="activity-list">
-                            <p class="text-secondary">Loading login history...</p>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h2>Login Activity</h2>
-                        <div id="loginActivity" class="activity-list">
-                            <!-- Will be populated with login history -->
+                        <h2><i class="ri-notification-badge-line"></i> Notifications</h2>
+                        <div class="settings-list">
+                            <div class="settings-item">
+                                <div>
+                                    <h3>Push Notifications</h3>
+                                    <p class="text-secondary">Enable browser notifications</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" id="pushNotifs">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Privacy Section -->
-            <section id="privacySection" class="section-content animate-in" style="display: none;">
+            <!-- Help Section -->
+            <section id="helpSection" class="section-content animate-in" style="display: none;">
                 <div class="profile-section">
-                    <h1>Privacy Settings</h1>
+                    <h1>Help & Support</h1>
                     
                     <div class="card">
-                        <h2>Connected Applications</h2>
-                        <div id="connectedApps" class="apps-grid">
-                            <p class="text-secondary">Loading connected apps...</p>
+                        <h2><i class="ri-questionnaire-line"></i> FAQ</h2>
+                        <div class="faq-list">
+                            <details class="faq-item">
+                                <summary>How do I change my password?</summary>
+                                <p>Go to Security > Password and click "Change Password".</p>
+                            </details>
+                            <details class="faq-item">
+                                <summary>How do I enable two-factor authentication?</summary>
+                                <p>Visit the Security section and look for Two-Factor Authentication settings.</p>
+                            </details>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h2>Data & Privacy</h2>
-                        <p>Control how your data is used across Nova services</p>
-                        <a href="privacy.html" class="btn-secondary" style="display: inline-block; text-decoration: none; margin-top: var(--space-md);">
-                            Privacy Policy
+                        <h2><i class="ri-customer-service-2-line"></i> Contact Support</h2>
+                        <p>Need help? Our support team is here for you.</p>
+                        <a href="mailto:support.xts@xxavvgroup.com" class="btn" style="margin-top: var(--space-md);">
+                            Contact Support
                         </a>
-                    </div>
-
-                    <div class="card">
-                        <h2>Data Export</h2>
-                        <p>Download a copy of your Nova Account data</p>
-                        <button class="btn" onclick="exportData()" 
-                            style="margin-top: var(--space-md)">Request Data Export</button>
                     </div>
                 </div>
             </section>
@@ -884,6 +913,18 @@ async function linkGitHub() {
     <a href="#privacySection" class="bottom-nav-item" data-section="privacySection">
         <i class="ri-lock-line"></i>
         <span>Privacy</span>
+    </a>
+    <a href="#appsSection" class="bottom-nav-item" data-section="appsSection">
+        <i class="ri-apps-line"></i>
+        <span>Apps</span>
+    </a>
+    <a href="#settingsSection" class="bottom-nav-item" data-section="settingsSection">
+        <i class="ri-settings-line"></i>
+        <span>Settings</span>
+    </a>
+    <a href="#helpSection" class="bottom-nav-item" data-section="helpSection">
+        <i class="ri-question-line"></i>
+        <span>Help</span>
     </a>
 </nav>
 </body>

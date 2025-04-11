@@ -30,7 +30,7 @@ service cloud.firestore {
         data.userId == request.auth.uid;
     }
     
-        // Helper function for validating posts
+    // Helper function for validating posts
     function isValidPost() {
       let data = request.resource.data;
       return 
@@ -47,7 +47,7 @@ service cloud.firestore {
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
     }
     
-        function isValidComment() {
+    function isValidComment() {
       let data = request.resource.data;
       return 
         data.keys().hasAll(['content', 'userId', 'username', 'createdAt']) &&
@@ -56,9 +56,34 @@ service cloud.firestore {
         data.username is string &&
         data.createdAt is timestamp;
     }
+
+    // Helper function for validating user preferences
+    function isValidPreferences() {
+      let data = request.resource.data;
+      return data.notifications is map;
+    }
+
+    // Helper function for validating activity logs
+    function isValidActivity() {
+      let data = request.resource.data;
+      return 
+        data.keys().hasAll(['type', 'deviceInfo', 'timestamp']) &&
+        data.deviceInfo is map &&
+        data.timestamp is timestamp;
+    }
+
+    // Helper function for validating connected apps
+    function isValidApp() {
+      let data = request.resource.data;
+      return 
+        data.keys().hasAll(['name', 'iconUrl', 'connectedAt', 'userId']) &&
+        data.name is string &&
+        data.iconUrl is string &&
+        data.connectedAt is timestamp &&
+        data.userId == request.auth.uid;
+    }
     
-    
-// Posts collection
+    // Posts collection
     match /posts/{postId} {
       allow read: if true;
       allow write: if request.auth != null;
@@ -76,24 +101,16 @@ service cloud.firestore {
       }
     }
 
-        // Users collection with verification rules
+    // Users collection with verification rules
     match /users/{userId} {
-      allow read: if true;
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
       
-      // Only allow users to update non-protected fields
-      allow create: if isOwner(userId) && 
-                   !request.resource.data.keys().hasAny(['isVerified', 'adminRole']);
-      
-      allow update: if (isOwner(userId) && 
-                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profilePicUrl']) ||
-                   !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isVerified', 'adminRole'])) || 
-                   (isAdmin() && 
-                   request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isVerified'])) ||
-                   (isAdmin() && request.resource.data.diff(resource.data).affectedKeys()
-          .hasAny(['warnings', 'strikes', 'isBanned', 'isHidden', 'banReason', 
-                   'hiddenReason', 'lastWarning', 'lastStrike', 'bannedAt', 'hiddenAt']));
-      
-      allow delete: if isAdmin();
+      // Allow access to likes subcollection
+      match /likes/{postId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
     }
     
     // Admin collection for managing verified status
@@ -109,15 +126,29 @@ service cloud.firestore {
 
     // Messages collection
     match /messages/{messageId} {
-      // Allow reading messages if user is authenticated
-      allow read: if isAuthenticated();
+      // Allow reading messages if user is a participant in the chat
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.chatId.split('_').hasAny([request.auth.uid])
+      );
+
+      // Allow listing/querying messages
+      allow list: if isAuthenticated();
       
-      // Allow creating messages if user is authenticated and sets themselves as sender
+      // Allow creating messages if user sets themselves as sender
       allow create: if isAuthenticated() && 
-                   request.resource.data.userId == request.auth.uid;
+                   request.resource.data.userId == request.auth.uid &&
+                   request.resource.data.chatId.split('_').hasAny([request.auth.uid]);
       
-      // Prevent editing or deleting messages
-      allow update, delete: if false;
+      // Allow updating only readBy and readAt fields
+      allow update: if isAuthenticated() && 
+                   request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['readBy', 'readAt']) &&
+                   resource.data.chatId.split('_').hasAny([request.auth.uid]);
+      
+      // Allow deleting only your own messages
+      allow delete: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid;
     }
 
     // Chats collection
@@ -146,25 +177,63 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
     
-    // Documents collection with enhanced rules
+  // Documents collection with enhanced rules
     match /documents/{docId} {
-      allow read: if isAuthenticated() && 
-                 (resource.data.userId == request.auth.uid || 
-                  resource.data.shared == true);
+      // Allow reading if:
+      // 1. User owns the document
+      // 2. Document is public
+      // 3. User is authenticated and is in the sharedWith array
+      allow read: if 
+        // Allow if user owns the document
+        (resource.data.userId == request.auth.uid) ||
+        // Allow if document is public
+        (resource.data.isPublic == true) ||
+        // Allow if user is in sharedWith array
+        (request.auth != null && 
+         request.auth.uid in resource.data.sharedWith);
       
+      // Only owner can create/update/delete
+      // Update the write rules to ensure sharedWith only contains valid user IDs
       allow create: if isAuthenticated() && 
                    request.resource.data.userId == request.auth.uid &&
-                   request.resource.data.keys().hasAll([
-                     'title', 'content', 'lastEdited', 'userId', 
-                     'font', 'fontFamily', 'isMarkdown', 'status'
-                   ]);
+                   (
+                     !('sharedWith' in request.resource.data) ||
+                     request.resource.data.sharedWith is list
+                   );
       
       allow update: if isAuthenticated() && 
-                   resource.data.userId == request.auth.uid &&
-                   request.resource.data.userId == request.auth.uid;
-      
+                   (resource.data.userId == request.auth.uid) &&
+                   (
+                     // Allow toggling favorite status
+                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isFavorite']) ||
+                     // Allow moving to trash with deletion date
+                     (request.resource.data.diff(resource.data).affectedKeys().hasAll(['isDeleted', 'deletedAt']) &&
+                      request.resource.data.isDeleted is bool &&
+                      request.resource.data.deletedAt is timestamp) ||
+                     // Allow restoring from trash
+                     (request.resource.data.diff(resource.data).affectedKeys().hasAll(['isDeleted', 'deletedAt']) &&
+                      request.resource.data.isDeleted == false &&
+                      request.resource.data.deletedAt == null) ||
+                     // Allow other document updates
+                     (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['sharedWith', 'userId']))
+                   );
+
+      // Add function to check if document should be auto-deleted
+      function isExpiredTrashItem() {
+        return resource.data.isDeleted == true &&
+               resource.data.deletedAt.toMillis() + duration.value(30, 'd') < request.time.toMillis();
+      }
+
+      // Allow admin to delete expired items
       allow delete: if isAuthenticated() && 
-                   resource.data.userId == request.auth.uid;
+                   (resource.data.userId == request.auth.uid || isAdmin()) &&
+                   (isExpiredTrashItem() || !resource.data.isDeleted);
+
+      // Revisions subcollection
+      match /revisions/{revisionId} {
+        allow read, write: if isAuthenticated() && 
+                          get(/databases/$(database)/documents/documents/$(docId)).data.userId == request.auth.uid;
+      }
     }
 
     // Document settings collection
@@ -221,7 +290,61 @@ service cloud.firestore {
     // User preferences collection
     match /userPreferences/{userId} {
       allow read: if isOwner(userId);
-      allow write: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidPreferences();
+    }
+
+    // User activity collection
+    match /userActivity/{activityId} {
+      allow read: if request.auth != null && 
+                 resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && 
+                   request.resource.data.userId == request.auth.uid &&
+                   isValidActivity();
+      allow delete: if false;
+      allow update: if false;
+    }
+
+    // Connected apps collection
+    match /userApps/{appId} {
+      allow read: if request.auth != null && 
+                 resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && isValidApp();
+      allow delete: if request.auth != null && 
+                   resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // Login attempts collection
+    match /loginAttempts/{attemptId} {
+      allow read: if request.auth != null && 
+                 resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && 
+                   request.resource.data.userId == request.auth.uid &&
+                   request.resource.data.keys().hasAll(['success', 'timestamp', 'deviceInfo']);
+      allow delete: if false;
+      allow update: if false;
+    }
+
+    // Sessions collection
+    match /sessions/{sessionId} {
+      allow read: if request.auth != null && 
+                 resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && 
+                   request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && 
+                   resource.data.userId == request.auth.uid &&
+                   request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActivity']);
+      allow delete: if request.auth != null && 
+                   resource.data.userId == request.auth.uid;
+    }
+
+    // Activity logs collection
+    match /activityLogs/{logId} {
+      allow read: if request.auth != null && 
+                 resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && 
+                   request.resource.data.userId == request.auth.uid;
+      allow delete, update: if false;
     }
 
     // Document statistics collection
@@ -257,6 +380,131 @@ service cloud.firestore {
           request.resource.data.keys().hasAll(['count', 'lastUsed']) &&
           request.resource.data.count is number;
       allow delete: if false;
+    }
+
+    // Notes collection rules
+    match /notes/{noteId} {
+      allow read: if 
+        (resource.data.userId == request.auth.uid) ||
+        (resource.data.isPublic == true);
+      
+      allow create: if isAuthenticated() && 
+                   request.resource.data.userId == request.auth.uid;
+      
+      allow update: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid &&
+                   request.resource.data.userId == request.auth.uid;
+      
+      allow delete: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid;
+    }
+
+    // Add typing collection rules
+    match /typing/{chatId} {
+      allow read, write: if isAuthenticated() && 
+        chatId.split('_').hasAny([request.auth.uid]);
+    }
+
+    // Update messages collection rules to be more permissive for queries
+    match /messages/{messageId} {
+      allow read, list: if isAuthenticated();
+      
+      allow create: if isAuthenticated() && 
+                   request.resource.data.userId == request.auth.uid;
+      
+      allow update: if isAuthenticated() && 
+                   (resource.data.chatId.split('_').hasAny([request.auth.uid]));
+      
+      allow delete: if isAuthenticated() && 
+                   resource.data.userId == request.auth.uid;
+    }
+
+    // Groups collection
+    match /groups/{groupId} {
+      // Allow reading if user is a member
+      allow read: if isAuthenticated() && 
+                 (resource.data.members.hasAny([request.auth.uid]));
+      
+      // Allow creating if user sets themselves as creator and member
+      allow create: if isAuthenticated() && 
+                   request.resource.data.creator == request.auth.uid &&
+                   request.resource.data.members.hasAny([request.auth.uid]);
+      
+      // Allow updates if user is creator or adding/removing themselves as member
+      allow update: if isAuthenticated() && 
+                   (
+                     resource.data.creator == request.auth.uid || 
+                     (
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members']) &&
+                       (
+                         request.resource.data.members.removeAll(resource.data.members).hasOnly([request.auth.uid]) ||
+                         resource.data.members.removeAll(request.resource.data.members).hasOnly([request.auth.uid])
+                       )
+                     )
+                   );
+      
+      // Only creator can delete
+      allow delete: if isAuthenticated() && 
+                   resource.data.creator == request.auth.uid;
+    }
+
+    // Update messages rules to support group messages
+    match /messages/{messageId} {
+      allow read, list: if isAuthenticated() && (
+        resource.data.chatId.split('_').hasAny([request.auth.uid]) ||
+        (
+          resource.data.chatId.hasAll(['group_']) && 
+          get(/databases/$(database)/documents/groups/$(resource.data.chatId)).data.members.hasAny([request.auth.uid])
+        )
+      );
+      
+    }
+
+    // Reports collection
+    match /reports/{reportId} {
+      // Helper function to validate report data
+      function isValidReport() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['type', 'details', 'reportedBy', 'status', 'createdAt']) &&
+               data.type in ['user', 'message', 'other'] &&
+               data.details is string &&
+               data.reportedBy == request.auth.uid &&
+               data.status == 'pending' &&
+               data.createdAt is timestamp &&
+               (!('reportedUser' in data) || data.reportedUser is string);
+      }
+
+      allow read: if isAuthenticated() && 
+                  (resource.data.reportedBy == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && isValidReport();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Support tickets collection
+    match /supportTickets/{ticketId} {
+      allow create: if isAuthenticated();
+      allow read: if request.auth.uid == resource.data.userId || isAdmin();
+    }
+
+    // Feedback collection
+    match /feedback/{feedbackId} {
+      allow create: if isAuthenticated();
+      allow read: if true;
+      allow update: if isAdmin();
+    }
+
+    // FAQs collection
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Warnings collection
+    match /warnings/{warningId} {
+      allow read: if isAuthenticated() && 
+                 (resource.data.userId == request.auth.uid || isAdmin());
+      allow create, update, delete: if isAdmin();
     }
   }
 }

@@ -12,23 +12,40 @@ class NotificationSystem {
         this.container = document.createElement('div');
         this.container.className = 'notification-container';
         document.body.appendChild(this.container);
+
+        // Add mobile-specific positioning
+        if (window.innerWidth <= 768) {
+            this.container.style.left = '16px';
+            this.container.style.right = '16px';
+            this.container.style.bottom = 'calc(80px + var(--safe-area-inset-bottom))';
+        }
     }
 
     show(message, type = 'info') {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         
-        const icon = this.getIcon(type);
+        // Enhanced mobile-friendly notification
         const content = `
-            <div class="notification-icon">${icon}</div>
-            <div class="notification-message">${message}</div>
-            <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+            <div class="notification-content">
+                <div class="notification-icon">${this.getIcon(type)}</div>
+                <div class="notification-message">${message}</div>
+            </div>
+            <button class="notification-close" aria-label="Close">×</button>
         `;
         
         notification.innerHTML = content;
+
+        // Add touch event handling
+        notification.querySelector('.notification-close').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            notification.classList.add('notification-hide');
+            setTimeout(() => notification.remove(), 300);
+        });
+
         this.container.appendChild(notification);
 
-        // Auto-remove after 5 seconds
+        // Auto-remove with transition
         setTimeout(() => {
             notification.classList.add('notification-hide');
             setTimeout(() => notification.remove(), 300);
