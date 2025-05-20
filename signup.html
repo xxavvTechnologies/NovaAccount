@@ -7,10 +7,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="https://d2zcpib8duehag.cloudfront.net/novaccounts-wot.png">
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <link rel="icon" type="image/x-icon" href="https://d2zcpib8duehag.cloudfront.net/novaccounts-wot.png">    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="migration-banner.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="migration-banner.js"></script>
+    <script src="countdown.js"></script>
     <style>
         .password-requirements {
             font-size: 13px;
@@ -88,7 +89,17 @@
         const auth = firebase.auth();
     </script>
 </head>
-<body>
+<body>    <!-- Migration Banner -->
+    <div class="migration-banner">
+        <div class="migration-banner-content">
+            <p class="migration-banner-message">🚨 <strong>CRITICAL NOTICE:</strong> This system is being decommissioned on June 20th, 2025. You MUST create a new account at our new site.</p>
+            <div class="migration-banner-links">
+                <a href="https://account.novasuite.one" class="migration-banner-link pulse-animation"><i class="ri-external-link-line"></i> CREATE NEW ACCOUNT NOW</a>
+                <a href="https://novasuite.one/transformation" class="migration-banner-link"><i class="ri-information-line"></i> Why We're Moving</a>
+            </div>
+        </div>
+    </div>
+
     <header class="header">
         <div class="container header-content">
             <nav class="primary-nav">
@@ -99,10 +110,13 @@
 
     <div class="container main-content">
         <div class="signup-container animate-in">
-            <div class="card" style="max-width: 400px; margin: 48px auto;">
-                <div id="loginForm">
-                    <h1 style="font-size: 24px; margin-bottom: var(--space-md);">Sign in with Nova ID</h1>
-                    <p class="text-secondary" style="margin-bottom: var(--space-xl);">Access all Nova services with one account</p>
+            <div class="card" style="max-width: 400px; margin: 48px auto;">                <div id="loginForm">
+                    <h1 style="font-size: 24px; margin-bottom: var(--space-md);">Sign in to Legacy Account</h1>
+                    <p class="text-secondary" style="margin-bottom: var(--space-xl);">For existing users only - New registrations closed</p>
+                      <div class="notice-box" style="background-color: #FFF3CD; border: 1px solid #FFE69C; padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: center;">
+                        <p style="margin: 0; color: #856404; font-weight: 500;">⚠️ Legacy Account Access</p>
+                        <p style="margin: 8px 0 0 0; color: #856404; font-size: 14px;">This system will be decommissioned on <strong>June 20th, 2025</strong>. Please transfer your data to the new system.</p>
+                    </div>
                     
                     <div class="social-login">
                         <button class="social-btn" onclick="signInWithGoogle()">
@@ -115,9 +129,7 @@
                         </button>
                     </div>
 
-                    <div class="or-divider">or</div>
-
-                    <form id="authForm" style="display: flex; flex-direction: column; gap: var(--space-md);">
+                    <div class="or-divider">or</div><form id="authForm" style="display: flex; flex-direction: column; gap: var(--space-md);">
                         <div>
                             <input type="email" id="email" placeholder="Email" required 
                                 style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
@@ -125,27 +137,17 @@
                         <div>
                             <input type="password" id="password" placeholder="Password" required 
                                 style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px;">
-                            <div id="passwordRequirements" class="password-requirements">
-                                Password must contain:
-                                <ul style="margin-top: 4px; margin-left: 20px;">
-                                    <li id="reqLength">At least 8 characters</li>
-                                    <li id="reqUpper">One uppercase letter</li>
-                                    <li id="reqLower">One lowercase letter</li>
-                                    <li id="reqNumber">One number</li>
-                                    <li id="reqSpecial">One special character</li>
-                                </ul>
-                            </div>
                         </div>
+                        
+                        <div class="notice-box" style="background-color: #FFF3CD; border: 1px solid #FFE69C; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                            <p style="margin: 0; color: #856404; font-weight: 500;">⚠️ Important Notice</p>
+                            <p style="margin: 8px 0 0 0; color: #856404; font-size: 14px;">Access to legacy accounts will be disabled on <strong>June 20th, 2025</strong>. Please transfer your data to the new system before this date.</p>
+                        </div>
+                        
                         <button type="submit" class="btn" style="width: 100%; margin-bottom: var(--space-md);">
                             Sign In
                         </button>
                     </form>
-
-                    <p style="text-align: center; margin: var(--space-md) 0;">
-                        <a href="#" id="toggleAuth" style="color: var(--primary-blue); text-decoration: none;">
-                            Create new account
-                        </a>
-                    </p>
 
                     <p class="text-secondary" style="font-size: 13px; margin-top: var(--space-xl);">
                         By continuing, you agree to Nova's <a href="https://novasuite.one/terms" target="_blank" style="color: var(--primary-blue);">Terms of Service</a> 
@@ -154,52 +156,22 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <script>
+    </div>    <script>
         // Remove duplicate Firebase initialization
         document.addEventListener('DOMContentLoaded', function() {
             // Use the already initialized auth instance
-            let isLoginMode = true;
             const authForm = document.getElementById('authForm');
-            const toggleAuth = document.getElementById('toggleAuth');
             const formTitle = document.querySelector('h1');
 
-            toggleAuth.addEventListener('click', (e) => {
-                e.preventDefault();
-                isLoginMode = !isLoginMode;
-                formTitle.textContent = isLoginMode ? 'Sign in with Nova ID' : 'Create Nova ID';
-                toggleAuth.textContent = isLoginMode ? 'Create new account' : 'Sign in instead';
-                authForm.querySelector('button[type="submit"]').textContent = 
-                    isLoginMode ? 'Sign In' : 'Create Account';
-            });
-
+            // Only allow login to existing accounts
             authForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
 
-                // Check all password requirements
-                const requirements = {
-                    length: /^.{8,}$/,
-                    upper: /[A-Z]/,
-                    lower: /[a-z]/,
-                    number: /[0-9]/,
-                    special: /[^A-Za-z0-9]/
-                };
-                const isPasswordValid = Object.values(requirements).every(regex => regex.test(password));
-                if (!isPasswordValid) {
-                    alert('Please meet all password requirements');
-                    return;
-                }
-
                 try {
-                    if (isLoginMode) {
-                        await auth.signInWithEmailAndPassword(email, password);
-                    } else {
-                        await auth.createUserWithEmailAndPassword(email, password);
-                        await auth.currentUser.sendEmailVerification();
-                    }
+                    // Only allow sign in, no new accounts
+                    await auth.signInWithEmailAndPassword(email, password);
                     window.location.href = 'index.html';
                 } catch (error) {
                     alert(error.message);

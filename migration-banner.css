@@ -1,0 +1,236 @@
+/* Migration Banner Styles */
+.migration-banner {
+  background: linear-gradient(135deg, #d00000, #9d0208);
+  color: var(--banner-text);
+  padding: var(--space-lg) var(--space-md);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+  z-index: 1000;
+  text-align: center;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-top: 3px solid #fff;
+  border-bottom: 3px solid #fff;
+}
+
+.migration-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  position: relative;
+  z-index: 2;
+}
+
+.migration-banner-message {
+  margin: 0;
+  font-size: 1.1rem;
+  animation: fadeInUp 0.5s ease-out;
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.migration-banner-links {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.migration-banner-link {
+  background: rgba(255, 255, 255, 0.25);
+  color: var(--banner-text);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  animation: fadeInUp 0.5s ease-out 0.1s backwards;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.migration-banner-link:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.migration-banner-link i {
+  margin-right: 4px;
+}
+
+.migration-banner-close {
+  background: none;
+  border: none;
+  color: var(--banner-text);
+  cursor: pointer;
+  position: absolute;
+  right: var(--space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  padding: 4px;
+}
+
+.migration-banner-close:hover {
+  opacity: 1;
+}
+
+.migration-banner:before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255,255,255,0.1),
+    rgba(255,255,255,0.1) 10px,
+    rgba(255,255,255,0.05) 10px,
+    rgba(255,255,255,0.05) 20px
+  );
+  animation: bannerAnimation 20s linear infinite;
+  z-index: 1;
+}
+
+@keyframes bannerAnimation {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  100% {
+    transform: translateX(-25%) translateY(-25%);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.5);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+  background: rgba(255, 255, 255, 0.35);
+  border: 2px solid white;
+  font-weight: 700;
+}
+
+/* Make sure banner works on mobile too */
+@media (max-width: 768px) {
+  .migration-banner {
+    padding: var(--space-sm) var(--space-md);
+  }
+  
+  .migration-banner-message {
+    font-size: 0.9rem;
+    margin-bottom: var(--space-sm);
+  }
+  
+  .migration-banner-close {
+    top: var(--space-sm);
+    right: var(--space-sm);
+    transform: none;
+  }
+}
+
+/* Countdown Timer Styles */
+.countdown-timer {
+  margin: 10px 0;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  display: inline-block;
+  text-align: center;
+  animation: fadeIn 0.5s ease-out 0.3s backwards;
+}
+
+.countdown-label {
+  font-size: 0.8rem;
+  margin-bottom: 5px;
+  opacity: 0.9;
+  letter-spacing: 1px;
+}
+
+.countdown-units {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.countdown-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  min-width: 28px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  padding: 4px 6px;
+  display: inline-block;
+}
+
+.countdown-unit .countdown-label {
+  font-size: 0.65rem;
+  margin-top: 2px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 576px) {
+  .countdown-value {
+    font-size: 1rem;
+    padding: 3px 5px;
+    min-width: 24px;
+  }
+  
+  .countdown-units {
+    gap: 6px;
+  }
+  
+  .countdown-unit .countdown-label {
+    font-size: 0.6rem;
+  }
+}

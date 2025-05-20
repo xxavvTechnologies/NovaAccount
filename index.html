@@ -40,9 +40,9 @@
     <title>Nova Account - Manage Your Account</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="https://d2zcpib8duehag.cloudfront.net/novaccounts-wot.png">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">    <link rel="icon" type="image/x-icon" href="https://d2zcpib8duehag.cloudfront.net/novaccounts-wot.png">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="migration-banner.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         .loading-spinner {
@@ -148,14 +148,61 @@
             background: #FF3B30;
             color: white;
         }
+        
+        /* Export status styles */
+        .export-status {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .export-status-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            box-shadow: var(--card-shadow);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .export-status h3 {
+            margin-bottom: var(--space-md);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            margin-top: var(--space-lg);
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-blue);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
     </style>
 
     <!-- Load Firebase scripts first -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <!-- Add JSZip for creating ZIP archives -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="notifications.js"></script>
+    <script src="migration-banner.js"></script>
+    <script src="countdown.js"></script>
     
     <!-- Initialize Firebase before any other scripts -->
     <script>
@@ -392,6 +439,348 @@
             a.download = 'nova-account-data.json';
             a.click();
             URL.revokeObjectURL(url);
+        }        async function exportAllData() {
+            // Create export status element
+            const exportStatus = document.createElement('div');
+            exportStatus.id = 'exportStatus';
+            exportStatus.className = 'export-status';
+            exportStatus.innerHTML = `
+                <div class="export-status-content">
+                    <h3>Exporting Your Data</h3>
+                    <p id="exportStatusText">Preparing export...</p>
+                    <div class="progress-bar">
+                        <div id="exportProgress" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(exportStatus);
+              // Helper function to safely convert Firebase timestamps to ISO strings
+            const safeTimestampToISOString = (timestamp) => {
+                if (!timestamp) return null;
+                if (timestamp instanceof Date) return timestamp.toISOString();
+                if (timestamp && typeof timestamp.toDate === 'function') {
+                    try {
+                        return timestamp.toDate().toISOString();
+                    } catch (e) {
+                        console.warn('Failed to convert timestamp', e);
+                        return null;
+                    }
+                }
+                if (timestamp && timestamp.seconds !== undefined) {
+                    // Handle timestamps stored as {seconds: number, nanoseconds: number}
+                    try {
+                        return new Date(timestamp.seconds * 1000).toISOString();
+                    } catch (e) {
+                        console.warn('Failed to convert numeric timestamp', e);
+                        return null;
+                    }
+                }
+                // If it's already a string or another format, return as is
+                return timestamp;
+            };
+            
+            // Function to process all timestamps in an object, including nested ones
+            const processTimestamps = (obj) => {
+                if (!obj || typeof obj !== 'object') return obj;
+                
+                // Handle arrays
+                if (Array.isArray(obj)) {
+                    return obj.map(item => processTimestamps(item));
+                }
+                
+                // If timestamp, convert it
+                if (obj.toDate || obj.seconds !== undefined) {
+                    return safeTimestampToISOString(obj);
+                }
+                
+                // Process each property of the object
+                const result = {};
+                for (const key in obj) {
+                    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                        result[key] = processTimestamps(obj[key]);
+                    }
+                }
+                return result;
+            };
+            
+            // Helper function to update the export status
+            const updateStatus = (message, progress) => {
+                document.getElementById('exportStatusText').textContent = message;
+                document.getElementById('exportProgress').style.width = `${progress}%`;
+            };
+              try {
+                const user = auth.currentUser;
+                if (!user) {
+                    document.body.removeChild(exportStatus);
+                    return;
+                }
+                
+                // Create a comprehensive data object
+                updateStatus('Collecting profile information...', 5);
+                const allUserData = {
+                    timestamp: new Date().toISOString(),
+                    profile: {
+                        displayName: user.displayName,
+                        email: user.email,
+                        photoURL: user.photoURL,
+                        emailVerified: user.emailVerified,
+                        createdAt: user.metadata.creationTime,
+                        lastLogin: user.metadata.lastSignInTime,
+                        uid: user.uid
+                    }
+                };
+                  // Get additional profile data from Firestore
+                updateStatus('Fetching user profile data...', 10);
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    allUserData.userData = processTimestamps(userData);
+                }                // Get user preferences
+                updateStatus('Fetching user preferences...', 15);
+                const prefsDoc = await db.collection('userPreferences').doc(user.uid).get();
+                if (prefsDoc.exists) {
+                    const prefsData = prefsDoc.data();
+                    allUserData.preferences = processTimestamps(prefsData);
+                }
+                
+                // Get activity logs
+                updateStatus('Retrieving activity logs...', 25);
+                const activities = await db.collection('activityLogs')
+                    .where('userId', '==', user.uid)
+                    .orderBy('timestamp', 'desc')
+                    .get();                if (!activities.empty) {
+                    allUserData.activityLogs = activities.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            ...processTimestamps(data),
+                            id: doc.id
+                        };
+                    });
+                }
+                
+                // Get login attempts
+                updateStatus('Retrieving login history...', 35);
+                const loginAttempts = await db.collection('loginAttempts')
+                    .where('userId', '==', user.uid)
+                    .orderBy('timestamp', 'desc')
+                    .get();                if (!loginAttempts.empty) {
+                    allUserData.loginAttempts = loginAttempts.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            ...processTimestamps(data),
+                            id: doc.id
+                        };
+                    });
+                }
+                
+                // Get active sessions
+                updateStatus('Retrieving active sessions...', 45);
+                const sessions = await db.collection('sessions')
+                    .where('userId', '==', user.uid)
+                    .get();                if (!sessions.empty) {
+                    allUserData.sessions = sessions.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            ...processTimestamps(data),
+                            id: doc.id
+                        };
+                    });
+                }
+                
+                // Get connected apps
+                updateStatus('Retrieving connected applications...', 55);
+                const apps = await db.collection('userApps')
+                    .where('userId', '==', user.uid)
+                    .get();                if (!apps.empty) {
+                    allUserData.connectedApps = apps.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            ...processTimestamps(data),
+                            id: doc.id
+                        };
+                    });
+                }
+                
+                // Get user documents
+                updateStatus('Retrieving your documents...', 65);
+                const documents = await db.collection('documents')
+                    .where('userId', '==', user.uid)
+                    .get();                if (!documents.empty) {
+                    allUserData.documents = documents.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            ...processTimestamps(data),
+                            id: doc.id
+                        };
+                    });
+                }
+                
+                // Get user messages
+                updateStatus('Retrieving message history...', 75);
+                const messages = await db.collection('messages')
+                    .where('userId', '==', user.uid)
+                    .limit(1000) // Limit to avoid too large exports
+                    .get();                if (!messages.empty) {
+                    allUserData.messages = messages.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            ...processTimestamps(data),
+                            id: doc.id
+                        };
+                    });
+                }
+                
+                // Get notifications
+                updateStatus('Retrieving notifications...', 85);
+                const notifs = await db.collection('notifications')
+                    .where('userId', '==', user.uid)
+                    .get();                if (!notifs.empty) {
+                    allUserData.notifications = notifs.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            ...processTimestamps(data),
+                            id: doc.id
+                        };
+                    });
+                }
+                
+                // Create files for download
+                updateStatus('Creating export archive...', 95);
+                await createAndDownloadExport(allUserData);
+                
+                // Log this activity
+                await logActivity('data_exported', { timestamp: new Date().toISOString() });
+                updateStatus('Export complete!', 100);
+                
+                // Remove the status element after completion
+                setTimeout(() => {
+                    if (document.body.contains(exportStatus)) {
+                        document.body.removeChild(exportStatus);
+                    }
+                }, 2000);
+                  } catch (error) {
+                console.error('Error exporting data:', error);
+                
+                // Show a helpful error message
+                let errorMessage = 'Failed to export data';
+                if (error.message) {
+                    // Clean up technical error messages to be more user-friendly
+                    if (error.message.includes('toDate is not a function')) {
+                        errorMessage = 'Error processing date fields. Please try again.';
+                    } else {
+                        errorMessage = 'Error: ' + error.message;
+                    }
+                }
+                
+                notifications.error(errorMessage);
+                
+                // Remove the status element on error
+                if (document.body.contains(exportStatus)) {
+                    document.body.removeChild(exportStatus);
+                }
+                
+                // Report the error to the console with full details for debugging
+                console.log('Detailed export error:', {
+                    message: error.message,
+                    stack: error.stack,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        }
+          async function createAndDownloadExport(data) {
+            try {
+                // Show processing message
+                notifications.info('Processing your data...');
+                
+                // Create a new ZIP archive
+                const zip = new JSZip();
+                const currentDate = new Date().toISOString().slice(0, 10);
+                const filename = `nova-account-data-${currentDate}`;
+                
+                // Add main profile JSON file
+                zip.file(`${filename}-profile.json`, JSON.stringify({
+                    profile: data.profile,
+                    userData: data.userData,
+                    preferences: data.preferences
+                }, null, 2));
+                
+                // Add activity logs in a separate file (if they exist)
+                if (data.activityLogs && data.activityLogs.length > 0) {
+                    zip.file(`${filename}-activity-logs.json`, JSON.stringify(data.activityLogs, null, 2));
+                }
+                
+                // Add login attempts in a separate file (if they exist)
+                if (data.loginAttempts && data.loginAttempts.length > 0) {
+                    zip.file(`${filename}-login-attempts.json`, JSON.stringify(data.loginAttempts, null, 2));
+                }
+                
+                // Add sessions data
+                if (data.sessions && data.sessions.length > 0) {
+                    zip.file(`${filename}-sessions.json`, JSON.stringify(data.sessions, null, 2));
+                }
+                
+                // Add connected apps
+                if (data.connectedApps && data.connectedApps.length > 0) {
+                    zip.file(`${filename}-connected-apps.json`, JSON.stringify(data.connectedApps, null, 2));
+                }
+                
+                // Add user documents
+                if (data.documents && data.documents.length > 0) {
+                    zip.file(`${filename}-documents.json`, JSON.stringify(data.documents, null, 2));
+                }
+                
+                // Add messages in a separate file (if they exist)
+                if (data.messages && data.messages.length > 0) {
+                    zip.file(`${filename}-messages.json`, JSON.stringify(data.messages, null, 2));
+                }
+                
+                // Add notifications
+                if (data.notifications && data.notifications.length > 0) {
+                    zip.file(`${filename}-notifications.json`, JSON.stringify(data.notifications, null, 2));
+                }
+                
+                // Generate README file with export information
+                const readmeContent = `# Nova Account Data Export
+                
+Export Date: ${new Date().toLocaleString()}
+User: ${data.profile.displayName || data.profile.email}
+User ID: ${data.profile.uid}
+
+This archive contains the following files:
+- ${filename}-profile.json: Your basic profile information and preferences
+${data.activityLogs && data.activityLogs.length > 0 ? `- ${filename}-activity-logs.json: Record of your account activity\n` : ''}${data.loginAttempts && data.loginAttempts.length > 0 ? `- ${filename}-login-attempts.json: Record of login attempts\n` : ''}${data.sessions && data.sessions.length > 0 ? `- ${filename}-sessions.json: Information about your active sessions\n` : ''}${data.connectedApps && data.connectedApps.length > 0 ? `- ${filename}-connected-apps.json: Apps connected to your account\n` : ''}${data.documents && data.documents.length > 0 ? `- ${filename}-documents.json: Your stored documents\n` : ''}${data.messages && data.messages.length > 0 ? `- ${filename}-messages.json: Your message history\n` : ''}${data.notifications && data.notifications.length > 0 ? `- ${filename}-notifications.json: Your notification history\n` : ''}
+
+This data was exported as part of your privacy rights. 
+If you're migrating to the new system, please import this data following the instructions at: https://account.novasuite.one/migrate
+`;
+                zip.file("README.txt", readmeContent);
+                
+                // Generate the ZIP file
+                zip.generateAsync({
+                    type: "blob",
+                    compression: "DEFLATE",
+                    compressionOptions: { level: 9 }
+                }).then(function(content) {
+                    // Create download link
+                    const url = URL.createObjectURL(content);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${filename}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // Clean up
+                    setTimeout(function() {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                    
+                    notifications.success('Your data has been exported successfully!');
+                });
+            } catch (error) {
+                console.error('Error creating download:', error);
+                notifications.error('Failed to create download file: ' + error.message);
+            }
         }
 
         async function sendConfirmationEmail(action) {
@@ -655,6 +1044,15 @@ async function linkGitHub() {
     <div id="loading" style="position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-md);">
         <div class="loading-spinner"></div>
         <p class="text-secondary">Loading your account...</p>
+    </div>    <!-- Migration Banner -->
+    <div class="migration-banner">
+        <div class="migration-banner-content">
+            <p class="migration-banner-message">🚨 <strong>CRITICAL NOTICE:</strong> This system is being decommissioned on June 20th, 2025. You MUST create a new account at our new site.</p>
+            <div class="migration-banner-links">
+                <a href="https://account.novasuite.one" class="migration-banner-link pulse-animation"><i class="ri-external-link-line"></i> CREATE NEW ACCOUNT NOW</a>
+                <a href="https://novasuite.one/transformation" class="migration-banner-link"><i class="ri-information-line"></i> Why We're Moving</a>
+            </div>
+        </div>
     </div>
 
     <!-- Hide main content initially -->
@@ -785,6 +1183,21 @@ async function linkGitHub() {
                                     <input type="checkbox" id="activityStatus" checked>
                                     <span class="toggle-slider"></span>
                                 </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h2><i class="ri-file-download-line"></i> Your Data</h2>
+                        <div class="settings-list">
+                            <div class="settings-item">
+                                <div>
+                                    <h3>Export Your Data</h3>
+                                    <p class="text-secondary">Download a copy of all your data</p>
+                                </div>
+                                <button class="btn" onclick="exportAllData()">
+                                    <i class="ri-download-2-line"></i> Export Data
+                                </button>
                             </div>
                         </div>
                     </div>

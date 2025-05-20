@@ -18,6 +18,8 @@
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --border-color-rgb: 210, 210, 215;
   --card-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  --banner-bg: linear-gradient(135deg, #0066FF, #784BA0);
+  --banner-text: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -2324,5 +2326,4 @@ input:checked + .toggle-slider:before {
 .card h2 i {
     margin-right: var(--space-sm);
     vertical-align: middle;
-    opacity: 0.9;
-}}
+    opacity: 0.9;}}
